@@ -1,13 +1,16 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics.Tracing;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 
 namespace MyProject;
 class Program
 {
-    static void Main(string[] args)
+    static void Main()
     {
-        StreamReader streamReader = new StreamReader(Console.ReadLine());
+        StreamReader streamReader = new(Console.ReadLine());
 
         var assembler = new Assembler(streamReader.ReadToEnd());
         streamReader.Close();
@@ -27,7 +30,7 @@ class Program
         foreach (var st in asseblyStatementList)
         {
             assembler.AssemleStatement(st.Value);
-            Console.WriteLine($"{st.Key.ToString("X4")} {st.Value}");
+            Console.WriteLine($"{st.Key:X4} {st.Value}");
         }
 
         
@@ -39,11 +42,11 @@ class Assembler
 
     public int ProgramCounter { get; private set; } = 0x0800;
 
-    private List<AssemblyStatement> _statements = new ();
+    /*private readonly List<AssemblyStatement> _statements = new ();*/
 
-    private Dictionary<string, Label> _labelList = new ();
+    private readonly Dictionary<string, Label> _labelList = new ();
 
-    private Dictionary<string, Label> _setList = new ()
+    private readonly Dictionary<string, Label> _setList = new ()
     {
         { "B", new Label("B", 0) },
         { "C", new Label("C", 1) },
@@ -65,7 +68,7 @@ class Assembler
 
     public Assembler(string source)
     {
-        var tokenizer = new Tokenizer(source);
+        var tokenizer = new Lexer(source);
 
         var token = tokenizer.Next();
         while (token.TokenType != TokenType.EOF)
@@ -154,8 +157,8 @@ class Assembler
     private Label? ParseLabel() =>
         (TokenAt().TokenType is TokenType.LABEL) ? new Label(TokenEat().Value, (ushort)ProgramCounter) : null;
 
-    private IAssemblyInstruction? ParseInstruction() =>
-        (TokenAt().TokenType is TokenType.OPCODE) ? _instructionTable[TokenEat().Value] : null;
+    private string? ParseInstruction() =>
+        (TokenAt().TokenType is TokenType.OPCODE) ? TokenEat().Value : null;
 
     private string? ParseComment() =>
         (TokenAt().TokenType is TokenType.COMMENT) ? TokenEat().Value : null;
@@ -163,117 +166,50 @@ class Assembler
     public void AssemleStatement(AssemblyStatement statement)
     {
         if (statement.Label != null)
-        {
             _labelList[statement.Label.Name].Value = (ushort)ProgramCounter;
-            //statement.Label.Value = (ushort)ProgramCounter;
-        }
-        //statement.Label.Value = (ushort)ProgramCounter;
 
         if (statement.Instruction == null)
             return;
 
-        statement.ExecuteInstruction();
-        ProgramCounter += statement.Instruction.ByteCount;
+        var compiler = new InstructionTranslator();
+
+        var instruction = compiler.GetType().GetMethod(statement.Instruction);
+        if (instruction == null)
+            throw new InvalidDataException($"Unknown instruction {statement.Instruction}");
+
+        var instructionParamInfo = instruction.GetParameters();
+        if (statement.OperandList.Count != instructionParamInfo.Length)
+            throw new ArgumentException(
+                $"{instruction.Name} takes {instructionParamInfo.Length} arguments, " +
+                $"but {statement.OperandList.Count} were given");
+
+        var instructionArgs = new List<object>();
+        foreach (var (First, Second) in instructionParamInfo.Zip(statement.OperandList.Operands))
+        {
+            if (First.ParameterType == typeof(byte))
+                instructionArgs.Add(Second.ToImmediateData());
+
+            else if (First.ParameterType == typeof(ushort))
+                instructionArgs.Add(Second.To16bitAdress());
+
+            else if (First.ParameterType == typeof(Register))
+                instructionArgs.Add(Second.ToRegister());
+
+            else if (First.ParameterType == typeof(RegisterPair))
+                instructionArgs.Add(Second.ToRegisterPair());
+
+            else throw new InvalidDataException("Unhandled type");
+        }
+
+        if (instruction.ReturnType == typeof(byte[]))
+        {
+            var bytes = (byte[])instruction.Invoke(compiler, instructionArgs.ToArray())!;
+        }
+
+        uint code = (uint)instruction.Invoke(compiler, instructionArgs.ToArray())!;
+
+        ProgramCounter += (code <= 0xFF) ? 1 : (code <= 0xFFFF) ? 2 : 3;
     }
-
-
-    private readonly Dictionary<string, IAssemblyInstruction> _instructionTable = new()
-    {
-        { "CMC", new NoArgsAsmInstruction("CMC", InstructionTranslator.CMC) },
-        { "STC", new NoArgsAsmInstruction("STC", InstructionTranslator.STC) },
-
-        { "INR", new RegisterArgAsmInstruction("INR", InstructionTranslator.INR) },
-        { "DCR", new RegisterArgAsmInstruction("DCR", InstructionTranslator.DCR) },
-        { "CMA", new NoArgsAsmInstruction("CMA", InstructionTranslator.CMA) },
-        { "DAA", new NoArgsAsmInstruction("DAA", InstructionTranslator.DAA) },
-
-        { "NOP", new NoArgsAsmInstruction("NOP", InstructionTranslator.NOP) },
-
-        { "MOV",  new TwoRegistersArgAsmInstruction("MOV", InstructionTranslator.MOV) },
-        { "STAX", new RegisterPairArgAsmInstruction("STAX", InstructionTranslator.STAX) },
-        { "LDAX", new RegisterPairArgAsmInstruction("LDAX", InstructionTranslator.LDAX) },
-        
-        { "ADD",  new RegisterArgAsmInstruction("ADD", InstructionTranslator.ADD) },
-        { "ADC",  new RegisterArgAsmInstruction("ADC", InstructionTranslator.ADC) },
-        { "SUB",  new RegisterArgAsmInstruction("SUB", InstructionTranslator.SUB) },
-        { "SBB",  new RegisterArgAsmInstruction("SBB", InstructionTranslator.SBB) },
-        { "ANA",  new RegisterArgAsmInstruction("ANA", InstructionTranslator.ANA) },
-        { "XRA",  new RegisterArgAsmInstruction("XRA", InstructionTranslator.XRA) },
-        { "ORA",  new RegisterArgAsmInstruction("ORA", InstructionTranslator.ORA) },
-        { "CMP",  new RegisterArgAsmInstruction("CMP", InstructionTranslator.CMP) },
-        
-        { "RLC", new NoArgsAsmInstruction("RLC", InstructionTranslator.RLC) },
-        { "RRC", new NoArgsAsmInstruction("RRC", InstructionTranslator.RRC) },
-        { "RAL", new NoArgsAsmInstruction("RAL", InstructionTranslator.RAL) },
-        { "RAR", new NoArgsAsmInstruction("RAR", InstructionTranslator.RAR) },
-
-        { "PUSH", new RegisterPairArgAsmInstruction("PUSH", InstructionTranslator.PUSH) },
-        { "POP",  new RegisterPairArgAsmInstruction("POP", InstructionTranslator.POP) },
-        { "DAD",  new RegisterPairArgAsmInstruction("DAD", InstructionTranslator.DAD) },
-        { "INX",  new RegisterPairArgAsmInstruction("INX", InstructionTranslator.INX) },
-        { "DCX",  new RegisterPairArgAsmInstruction("DCX", InstructionTranslator.DCX) },
-
-        { "XCHG", new NoArgsAsmInstruction("XCHG", InstructionTranslator.XCHG) },
-        { "XTHL", new NoArgsAsmInstruction("XTHL", InstructionTranslator.XTHL) },
-        { "SPHL", new NoArgsAsmInstruction("SPHL", InstructionTranslator.SPHL) },
-
-        { "LXI", new RegisterPairAndWordArgAsmInstruction("LXI", InstructionTranslator.LXI) },
-        { "MVI", new RegisterAndByteArgAsmInstruction("MVI", InstructionTranslator.MVI) },
-        { "ADI", new ByteArgAsmInstruction("ADI", InstructionTranslator.ADI) },
-        { "ACI", new ByteArgAsmInstruction("ACI", InstructionTranslator.ACI) },
-        { "SUI", new ByteArgAsmInstruction("SUI", InstructionTranslator.SUI) },
-        { "SBI", new ByteArgAsmInstruction("SBI", InstructionTranslator.SBI) },
-        { "ANI", new ByteArgAsmInstruction("ANI", InstructionTranslator.ANI) },
-        { "XRI", new ByteArgAsmInstruction("XRI", InstructionTranslator.XRI) },
-        { "ORI", new ByteArgAsmInstruction("ORI", InstructionTranslator.ORI) },
-        { "CPI", new ByteArgAsmInstruction("CPI", InstructionTranslator.CPI) },
-
-        { "SHLD", new WordArgAsmInstruction("SHLD", InstructionTranslator.SHLD) },
-        { "LHLD", new WordArgAsmInstruction("LHLD", InstructionTranslator.LHLD) },
-        { "STA", new WordArgAsmInstruction("STA", InstructionTranslator.STA) },
-        { "LDA", new WordArgAsmInstruction("LDA", InstructionTranslator.LDA) },
-
-        { "PCHL", new NoArgsAsmInstruction("PCHL", InstructionTranslator.PCHL) },
-        { "JMP", new WordArgAsmInstruction("JMP", InstructionTranslator.JMP) },
-        { "JNZ", new WordArgAsmInstruction("JNZ", InstructionTranslator.JNZ) },
-        { "JZ", new WordArgAsmInstruction("JZ", InstructionTranslator.JZ) },
-        { "JNC", new WordArgAsmInstruction("JNC", InstructionTranslator.JNC) },
-        { "JC", new WordArgAsmInstruction("JC", InstructionTranslator.JC) },
-        { "JPO", new WordArgAsmInstruction("JPO", InstructionTranslator.JPO) },
-        { "JPE", new WordArgAsmInstruction("JPE", InstructionTranslator.JPE) },
-        { "JP", new WordArgAsmInstruction("JP", InstructionTranslator.JP) },
-        { "JM", new WordArgAsmInstruction("JM", InstructionTranslator.JM) },
-
-        { "CALL", new WordArgAsmInstruction("CALL", InstructionTranslator.CALL) },
-        { "CNZ", new WordArgAsmInstruction("CNZ", InstructionTranslator.CNZ) },
-        { "CZ", new WordArgAsmInstruction("CZ", InstructionTranslator.CZ) },
-        { "CNC", new WordArgAsmInstruction("CNC", InstructionTranslator.CNC) },
-        { "CC", new WordArgAsmInstruction("CC", InstructionTranslator.CC) },
-        { "CPO", new WordArgAsmInstruction("CPO", InstructionTranslator.CPO) },
-        { "CPE", new WordArgAsmInstruction("CPE", InstructionTranslator.CPE) },
-        { "CP", new WordArgAsmInstruction("CP", InstructionTranslator.CP) },
-        { "CM", new WordArgAsmInstruction("CM", InstructionTranslator.CM) },
-
-        { "RET", new NoArgsAsmInstruction("RET", InstructionTranslator.RET) },
-        { "RNZ", new NoArgsAsmInstruction("RNZ", InstructionTranslator.RNZ) },
-        { "RZ", new NoArgsAsmInstruction("RZ", InstructionTranslator.RZ) },
-        { "RNC", new NoArgsAsmInstruction("RNC", InstructionTranslator.RNC) },
-        { "RC", new NoArgsAsmInstruction("RC", InstructionTranslator.RC) },
-        { "RPO", new NoArgsAsmInstruction("RPO", InstructionTranslator.RPO) },
-        { "RPE", new NoArgsAsmInstruction("RPE", InstructionTranslator.RPE) },
-        { "RP", new NoArgsAsmInstruction("RP", InstructionTranslator.RP) },
-        { "RM", new NoArgsAsmInstruction("RM", InstructionTranslator.RM) },
-
-        { "RST", new ByteArgAsmInstruction("RST", InstructionTranslator.RST) },
-
-        { "EI", new NoArgsAsmInstruction("EI", InstructionTranslator.EI) },
-        { "DI", new NoArgsAsmInstruction("DI", InstructionTranslator.DI) },
-
-        { "IN", new ByteArgAsmInstruction("IN", InstructionTranslator.IN) },
-        { "OUT", new ByteArgAsmInstruction("OUT", InstructionTranslator.OUT) },
-
-        { "HLT", new NoArgsAsmInstruction("HLT", InstructionTranslator.HLT) },
-    };
 
 }
 
@@ -288,225 +224,6 @@ class Label
     {
         Name = name;
         Value = value;
-    }
-}
-
-
-
-interface IAssemblyInstruction
-{
-    string OpCode { get; }
-
-    uint GetCode(IOperandMultiple args);
-
-    int ByteCount { get; }
-}
-
-class NoArgsAsmInstruction : IAssemblyInstruction
-{
-    public string OpCode { get; private set; }
-
-    public int ArgCount => 0;
-
-    public int ByteCount => 1;
-
-    private Func<uint> _translateFunc;
-
-    public NoArgsAsmInstruction(string opCode, Func<uint> translateFunc)
-    {
-        OpCode = opCode;
-        _translateFunc = translateFunc;
-    }
-
-    public uint GetCode(IOperandMultiple args)
-    {
-        if (args.Count != ArgCount)
-            throw new ArgumentException(
-                $"{nameof(OpCode)} takes no arguments, but {args.Count} were given");
-
-        return _translateFunc();
-    }
-}
-
-class RegisterArgAsmInstruction : IAssemblyInstruction
-{
-    public string OpCode { get; private set; }
-
-    public int ArgCount => 1;
-
-    public int ByteCount => 1;
-
-    private Func<Register, uint> _translateFunc;
-
-    public RegisterArgAsmInstruction(string opCode, Func<Register, uint> translateFunc)
-    {
-        OpCode = opCode;
-        _translateFunc = translateFunc;
-    }
-
-    public uint GetCode(IOperandMultiple args)
-    {
-        if (args.Count != ArgCount)
-            throw new ArgumentException(
-                $"{nameof(OpCode)} takes {ArgCount} arguments, but {args.Count} were given");
-
-        return _translateFunc(args.First.ToRegister());
-    }
-}
-
-class TwoRegistersArgAsmInstruction : IAssemblyInstruction
-{
-    public string OpCode { get; private set; }
-
-    public int ArgCount => 2;
-
-    public int ByteCount => 1;
-
-    private Func<Register, Register, uint> _translateFunc;
-
-    public TwoRegistersArgAsmInstruction(string opCode, Func<Register, Register, uint> translateFunc)
-    {
-        OpCode = opCode;
-        _translateFunc = translateFunc;
-    }
-
-    public uint GetCode(IOperandMultiple args)
-    {
-        if (args.Count != ArgCount)
-            throw new ArgumentException(
-                 $"{nameof(OpCode)} takes {ArgCount} arguments, but {args.Count} were given");
-
-        return _translateFunc(args.First.ToRegister(), args.Second.ToRegister());
-    }
-}
-
-class RegisterPairArgAsmInstruction : IAssemblyInstruction
-{
-    public string OpCode { get; private set; }
-
-    public int ArgCount => 1;
-
-    public int ByteCount => 1;
-
-    private Func<RegisterPair, uint> _translateFunc;
-
-    public RegisterPairArgAsmInstruction(string opCode, Func<RegisterPair, uint> translateFunc)
-    {
-        OpCode = opCode;
-        _translateFunc = translateFunc;
-    }
-
-    public uint GetCode(IOperandMultiple args)
-    {
-        if (args.Count != ArgCount)
-            throw new ArgumentException(
-                 $"{nameof(OpCode)} takes {ArgCount} arguments, but {args.Count} were given");
-
-        return _translateFunc(args.First.ToRegisterPair());
-    }
-}
-
-class RegisterPairAndWordArgAsmInstruction : IAssemblyInstruction
-{
-    public string OpCode { get; private set; }
-
-    public int ArgCount => 2;
-
-    public int ByteCount => 3;
-
-    private Func<RegisterPair, ushort, uint> _translateFunc;
-
-    public RegisterPairAndWordArgAsmInstruction(string opCode, Func<RegisterPair, ushort, uint> translateFunc)
-    {
-        OpCode = opCode;
-        _translateFunc = translateFunc;
-    }
-
-    public uint GetCode(IOperandMultiple args)
-    {
-        if (args.Count != ArgCount)
-            throw new ArgumentException(
-                 $"{nameof(OpCode)} takes {ArgCount} arguments, but {args.Count} were given");
-
-        return _translateFunc(args.First.ToRegisterPair(), args.Second.To16bitAdress());
-    }
-}
-
-class RegisterAndByteArgAsmInstruction : IAssemblyInstruction
-{
-    public string OpCode { get; private set; }
-
-    public int ArgCount => 2;
-
-    public int ByteCount => 2;
-
-    private Func<Register, byte, uint> _translateFunc;
-
-    public RegisterAndByteArgAsmInstruction(string opCode, Func<Register, byte, uint> translateFunc)
-    {
-        OpCode = opCode;
-        _translateFunc = translateFunc;
-    }
-
-    public uint GetCode(IOperandMultiple args)
-    {
-        if (args.Count != ArgCount)
-            throw new ArgumentException(
-                 $"{nameof(OpCode)} takes {ArgCount} arguments, but {args.Count} were given");
-
-        return _translateFunc(args.First.ToRegister(), args.Second.ToImmediateData());
-    }
-}
-
-class ByteArgAsmInstruction : IAssemblyInstruction
-{
-    public string OpCode { get; private set; }
-
-    public int ArgCount => 1;
-
-    public int ByteCount => 2;
-
-    private Func<byte, uint> _translateFunc;
-
-    public ByteArgAsmInstruction(string opCode, Func<byte, uint> translateFunc)
-    {
-        OpCode = opCode;
-        _translateFunc = translateFunc;
-    }
-
-    public uint GetCode(IOperandMultiple args)
-    {
-        if (args.Count != ArgCount)
-            throw new ArgumentException(
-                 $"{nameof(OpCode)} takes {ArgCount} arguments, but {args.Count} were given");
-
-        return _translateFunc(args.First.ToImmediateData());
-    }
-}
-
-class WordArgAsmInstruction : IAssemblyInstruction
-{
-    public string OpCode { get; private set; }
-
-    public int ArgCount => 1;
-
-    public int ByteCount => 3;
-
-    private Func<ushort, uint> _translateFunc;
-
-    public WordArgAsmInstruction(string opCode, Func<ushort, uint> translateFunc)
-    {
-        OpCode = opCode;
-        _translateFunc = translateFunc;
-    }
-
-    public uint GetCode(IOperandMultiple args)
-    {
-        if (args.Count != ArgCount)
-            throw new ArgumentException(
-                 $"{nameof(OpCode)} takes {ArgCount} arguments, but {args.Count} were given");
-
-        return _translateFunc(args.First.To16bitAdress());
     }
 }
 
@@ -534,7 +251,7 @@ interface IOperandMultiple
 
 class OperandList : IOperandMultiple
 {
-    public int Count => _operands.Count();
+    public int Count => _operands.Count;
 
     public IEnumerable<IOperand> Operands => _operands;
 

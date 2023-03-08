@@ -1,32 +1,9 @@
 ﻿namespace MyProject;
 
-class Tokenizer
+class Lexer
 {
-    private readonly string[] _instructionTable =
-    {
-        "STC", "CMC",               // Carry bit instructions
-        "INR", "DCR", "CMA", "DAA", // Single register instructions
-        "NOP",                      // Nop
-        "MOV", "STAX", "LDAX",      // Data Transfer Instruction
-        "ADD", "ADC", "SUB", "SBB", "ANA", "XRA", "ORA", "CMP", // Register or memory to accumulator instructions
-        "RLC", "RRC", "RAL", "RAR",
-        "PUSH", "POP", "DAD", "INX", "DCX", "XCHG", "XTHL", "SPHL",
-        "LXI", "MVI", "ADI", "ACI", "SUI", "SBI", "ANI", "XRI", "ORI", "CPI",
-        "STA", "LDA", "SHLD", "LHLD",
-        "PCHL", "JMP", "JC", "JNC", "JZ", "JNZ", "JP", "JM", "JPE", "JPO",
-        "CALL", "CC", "CNC", "CZ", "CNZ", "CP", "CM", "CPE", "CPO",
-        "RET", "RC", "RNC", "RZ", "RNZ", "RM", "RP", "RPE", "RPO",
-        "RST",
-        "EI", "DI",
-        "IN", "OUT",
-        "HLT",
-        "ORG",
-        "EQU",
-        "SET",
-        "END",
-        "IF", "ENDIF",
-        "MACRO", "ENDM"
-    };
+    private readonly string[] _instructionTable = 
+        InstructionTranslator.GetInstructionNames().ToArray();
 
     private string _sourceCode;
 
@@ -39,7 +16,7 @@ class Tokenizer
         _pos++;
     }
 
-    public Tokenizer(string sourceCode)
+    public Lexer(string sourceCode)
     {
         _sourceCode = sourceCode.ToUpper();
     }
