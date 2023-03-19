@@ -2,14 +2,15 @@
 
 public enum TokenType 
 { 
-    UNKNOWN,
-    LABEL,
-    SYMBOL,             // OP, Pseudo OP, Symbol for SET or EQU, Label
-    STRING,
-    PG_DATA,
-    NUMBER,
-    COMMENT,
-    COMMA,
+    Unknown,
+    Label,
+    Symbol,             // OP, Pseudo OP, Symbol for SET or EQU, Label
+    String,
+    ProgramCounterData,
+    Number,
+    Comment,
+    Comma,
     EOF,
-    OPCODE,
+    Instruction,
+    NewLine
 }

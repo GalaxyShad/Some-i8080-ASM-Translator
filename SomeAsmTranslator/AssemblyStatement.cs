@@ -1,4 +1,6 @@
-﻿namespace MyProject;
+﻿using SomeAsmTranslator.Operands;
+
+namespace MyProject;
 
 class AssemblyStatement
 {

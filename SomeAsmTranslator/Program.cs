@@ -1,415 +1,270 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics.Tracing;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
+﻿using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
+using SomeAsmTranslator.Operands;
 
 namespace MyProject;
 class Program
 {
-    static void Main()
+    static void Main(string[] args)
     {
-        StreamReader streamReader = new(Console.ReadLine());
+        string inFilePath = string.Empty;
+        var paramList = new List<string>();
 
-        var assembler = new Assembler(streamReader.ReadToEnd());
-        streamReader.Close();
+        var assembler = new Assembler();
+        var listingGenerator = new ListingGenerator();
 
-        var asseblyStatementList = new List<KeyValuePair<int, AssemblyStatement>>();
-
-        AssemblyStatement statement = assembler.Next();
-        while (!statement.IsEmpty())
+        if (args.Length == 0)
         {
-            /*Console.WriteLine($"{statement.ToString()} [{statement.Instruction.GetCode(statement.OperandList):X}]");*/
-            int pg = assembler.ProgramCounter;
-            assembler.AssemleStatement(statement);
-            asseblyStatementList.Add(new KeyValuePair<int, AssemblyStatement>(pg, statement));
-            statement = assembler.Next();
+            Console.WriteLine("[ERR] No args specified, type -help for Help");
+            return;
         }
 
-        foreach (var st in asseblyStatementList)
+        bool isGenerateWord = false;
+        bool isGenerateCsv = false;
+
+        foreach (var arg in args)
         {
-            assembler.AssemleStatement(st.Value);
-            Console.WriteLine($"{st.Key:X4} {st.Value}");
+            if (arg.First() is '-')
+            {
+                switch (arg)
+                {
+                    case "-word":
+                        isGenerateWord = true;
+                        break;
+                    case "-csv":
+                        isGenerateCsv = true;
+                        break;
+                    case "-samelinebyte":
+                        listingGenerator.IsMachineCodeLineSeperation = false;
+                        break;
+                    case "-help":
+                        Console.WriteLine(
+                            "-word          - create listing in .docx word table\n" +
+                            "-csv           - create .csv table listing file\n" +
+                            "-samelinebyte  - keep all instruction bytes on the same line\n"
+                        );
+                        break;
+                    default:
+                        Console.WriteLine($"[ERR] Unknown flag {arg}");
+                        return;
+                }
+            }
+            else
+                inFilePath = Path.GetFullPath(arg);
         }
+
+        if (string.IsNullOrEmpty(inFilePath))
+        {
+            Console.WriteLine("[ERR] No input files specified, type -help for Help");
+            return;
+        }
+
+        if (!File.Exists(inFilePath))
+        {
+            Console.WriteLine($"[ERR] {inFilePath} File does no exist");
+            return;
+        }
+
+        string sourceCode = string.Empty;
+
+        try
+        {
+            var streamReader = new StreamReader(inFilePath);
+            sourceCode = streamReader.ReadToEnd();
+            streamReader.Close();
+        }
+        catch (Exception err)
+        {
+            Console.WriteLine($"[ERR] [IO] {err.Message}");
+            return;
+        }
+
+        IEnumerable<AssemblyLine>? list = null;
+
+        try
+        {
+            list = assembler.AssembleAll(sourceCode);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERR] [ASM] [{ex.GetType()}] {ex.Message}");
+            return;
+        }
+
+        var listing = listingGenerator.Generate(list);
+
+        var maxMachineCodeWidth = listing.Max(x => x.MachineCode.Length);
+        var maxLabelWidth = listing.Max(x => x.Label.Length);
+        var maxAsmCodeWidth = listing.Max(x => x.AsmCode.Length);
 
         
-    }
-}
 
-class Assembler
-{
+        var outFilePath =
+            $"{Path.GetDirectoryName(inFilePath)}" +
+            $"{Path.DirectorySeparatorChar}" +
+            $"{Path.GetFileNameWithoutExtension(inFilePath)}";
 
-    public int ProgramCounter { get; private set; } = 0x0800;
+        if (isGenerateWord)
+            SaveToWord(listing, $"{outFilePath}.docx");
 
-    /*private readonly List<AssemblyStatement> _statements = new ();*/
-
-    private readonly Dictionary<string, Label> _labelList = new ();
-
-    private readonly Dictionary<string, Label> _setList = new ()
-    {
-        { "B", new Label("B", 0) },
-        { "C", new Label("C", 1) },
-        { "D", new Label("D", 2) },
-        { "E", new Label("E", 3) },
-        { "H", new Label("H", 4) },
-        { "L", new Label("L", 5) },
-        { "M", new Label("M", 6) },
-        { "A", new Label("A", 7) },
-    };
-
-    private Queue<Token> _tokenQueue = new ();
-
-    private Token TokenAt() =>
-        (_tokenQueue.Count != 0) ? _tokenQueue.Peek() : new Token { TokenType = TokenType.EOF, Value = "EOF" };
-
-    private Token TokenEat() => 
-        (_tokenQueue.Count != 0) ? _tokenQueue.Dequeue() : new Token { TokenType = TokenType.EOF, Value = "EOF" };
-
-    public Assembler(string source)
-    {
-        var tokenizer = new Lexer(source);
-
-        var token = tokenizer.Next();
-        while (token.TokenType != TokenType.EOF)
+        if (isGenerateCsv)
         {
-            if (token.TokenType == TokenType.LABEL)
+            var sw = new StreamWriter($"{outFilePath}.csv");
+            foreach (var line in listing)
             {
-                if (_labelList.ContainsKey(token.Value))
-                    throw new InvalidDataException($"Double Label {token.Value}");
-
-                _labelList.Add(token.Value, new Label(token.Value, 0));
+                sw.WriteLine($"{line.Address};" +
+                    $"{line.MachineCode};" +
+                    $"{line.Label};" +
+                    $"{line.AsmCode};" +
+                    $"{line.Comment};");
             }
-                
-
-            _tokenQueue.Enqueue(token);
-            token = tokenizer.Next();
-        }
-    }
-
-    public AssemblyStatement Next()
-    {
-        return new AssemblyStatement(
-            ParseLabel(),
-            ParseInstruction(),
-            ParseOperands(),
-            ParseComment()
-        );
-    }
-
-    private OperandList ParseOperands()
-    {
-        var operandList = new OperandList();
-
-        var left = ParseOperand();
-        if (left != null)
-            operandList.Add(left);
-
-        while (TokenAt().TokenType is TokenType.COMMA)
-        {
-            TokenEat();
-            left = ParseOperand();
-
-            if (left != null)
-                operandList.Add(left);
+            sw.Close();
         }
 
-        return operandList;
+        var sww = new StreamWriter($"{outFilePath}.i8080asm.txt");
+        foreach (var line in listing)
+        {
+            var stringLine =
+                $"{line.Address} | " +
+                $"{line.MachineCode.PadLeft(maxMachineCodeWidth)} | " +
+                $"{line.Label.PadRight(maxLabelWidth)} | " +
+                $"{line.AsmCode.PadRight(maxAsmCodeWidth)} ; " +
+                $"{line.Comment}";
+
+            Console.WriteLine(stringLine);
+
+            sww.WriteLine(stringLine);
+        }
+        sww.Close();
+
+        Console.WriteLine("\nSuccessfull");
     }
 
-    private IOperand? ParseOperand()
+    static void SaveToWord(IEnumerable<ListingLine> listing, string filepath)
     {
-        IOperand operand;
-
-        switch (TokenAt().TokenType)
+        using (WordprocessingDocument doc = WordprocessingDocument.Create(
+            filepath, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
         {
-            case TokenType.PG_DATA:
-                operand = new OperandProgramCounter((ushort)ProgramCounter);
-                break;
-            case TokenType.NUMBER:
-                operand = new OperandNumeric(TokenAt().Value);
-                break;
-            case TokenType.STRING:
-                throw new NotImplementedException("Strings are not implemented yet");
-            case TokenType.SYMBOL:
-                if (_labelList.ContainsKey(TokenAt().Value))
-                    operand = new OperandLabel(_labelList[TokenAt().Value]);
+            // Add a main document part. 
+            MainDocumentPart mainPart = doc.AddMainDocumentPart();
 
-                else if (_setList.ContainsKey(TokenAt().Value))
-                    operand = new OperandLabelAssignedValue(_setList[TokenAt().Value]);
+            // Create the document structure and add some text.
+            mainPart.Document = new Document();
 
-                else if (TokenAt().Value is "SP" or "PSW")
-                    operand = new OperandLabelAssignedValue(new Label(TokenAt().Value, 0));
+            StyleDefinitionsPart styleDefinitionsPart = mainPart.AddNewPart<StyleDefinitionsPart>();
 
-                else
-                    throw new InvalidDataException($"Unexisting label {TokenAt().Value}");
+            WordDocumentGenerator wordDocumentGenerator = new WordDocumentGenerator();
+            wordDocumentGenerator.CreateStyleDefinitionsPart(styleDefinitionsPart);
 
-                break;
-            default:
-                return null;
+            Body body = mainPart.Document.AppendChild(new Body());
+
+            // Create a table.
+            Table tbl = new Table();
+
+            TableProperties tblProp = new TableProperties();
+
+            // Make the table width 100% of the page width.
+            TableWidth tableWidth = new TableWidth() { Width = "5000", Type = TableWidthUnitValues.Pct };
+
+            // Apply
+            TableStyle ts = new TableStyle { Val = "a3" };
+
+            tblProp.TableStyle = ts;
+            tblProp.Append(tableWidth);
+            tbl.AppendChild(tblProp);
+
+            // Add 3 columns to the table.
+            TableGrid tg = new TableGrid(
+                new GridColumn(), new GridColumn(), new GridColumn(), new GridColumn(), new GridColumn());
+            tbl.AppendChild(tg);
+
+            foreach (var line in listing)
+            {
+                TableRow tr = new TableRow();
+
+                var GetRunProps = () => new RunProperties(
+                    new RunFonts() { Ascii = "Consolas", HighAnsi = "Consolas" },
+                    new FontSize() { Val = "24" }
+                );
+
+                var runs = new Run[]
+                {
+                    new Run(new Text(line.Address)),
+                    new Run(new Text(line.Label)),
+                    new Run(new Text(line.MachineCode)),
+                    new Run(new Text(line.AsmCode)),
+                    new Run(new Text(line.Comment))
+                };
+
+                foreach (var run in runs)
+                {
+                    run.PrependChild(GetRunProps());
+                    tr.Append(new TableCell(new Paragraph(run)));
+                }
+                   
+
+                tbl.AppendChild(tr);
+            }
+
+            // Add the table to the document
+            body.AppendChild(tbl);
+        }
+    }
+}
+
+class ListingLine
+{
+    public string Address { get; set; } = string.Empty;
+    public string Label { get; set; } = string.Empty;
+    public string MachineCode { get; set; } = string.Empty;
+    public string AsmCode { get; set; } = string.Empty;
+    public string Comment { get; set; } = string.Empty;
+}
+
+
+class ListingGenerator
+{
+    public bool IsMachineCodeLineSeperation { get; set; } = true;
+
+    public IEnumerable<ListingLine> Generate(IEnumerable<AssemblyLine> assemblyLines)
+    {
+        var listing = new List<ListingLine>();
+
+        foreach (var asmLine in assemblyLines)
+        {
+            var asmStatement = asmLine.AssemblyStatement;
+
+            listing.Add(new ListingLine() 
+            { 
+                Address = $"{asmLine.Address:X4}",
+                Label = FormatLabel(asmStatement.Label),
+                MachineCode = (IsMachineCodeLineSeperation) ? $"{asmLine.Bytes?[0]:X2}" : FormatMachineCode(asmLine.Bytes),
+                AsmCode = FormatInstruction(asmStatement.Instruction, asmStatement.OperandList),
+                Comment = asmStatement.Comment ?? string.Empty,
+            });
+
+            if (!IsMachineCodeLineSeperation)
+                continue;
+
+            for (int i = 1; i < asmLine.Bytes?.Length; i++)
+            {
+                listing.Add(new ListingLine()
+                {
+                    Address = $"{(asmLine.Address+i):X4}",
+                    MachineCode = $"{asmLine.Bytes?[i]:X2}"
+                });
+            }
         }
 
-        TokenEat();
-
-        return operand;
+        return listing;
     }
 
-    private Label? ParseLabel() =>
-        (TokenAt().TokenType is TokenType.LABEL) ? new Label(TokenEat().Value, (ushort)ProgramCounter) : null;
+    private string FormatLabel(Label? label) => 
+        (label is not null) ? $"{label.Name}:" : string.Empty;
 
-    private string? ParseInstruction() =>
-        (TokenAt().TokenType is TokenType.OPCODE) ? TokenEat().Value : null;
+    private string FormatInstruction(string? instruction, IOperandMultiple opList) =>
+        $"{instruction ?? string.Empty} {string.Join(",", opList.Operands)}";
 
-    private string? ParseComment() =>
-        (TokenAt().TokenType is TokenType.COMMENT) ? TokenEat().Value : null;
-
-    public void AssemleStatement(AssemblyStatement statement)
-    {
-        if (statement.Label != null)
-            _labelList[statement.Label.Name].Value = (ushort)ProgramCounter;
-
-        if (statement.Instruction == null)
-            return;
-
-        var compiler = new InstructionTranslator();
-
-        var instruction = compiler.GetType().GetMethod(statement.Instruction);
-        if (instruction == null)
-            throw new InvalidDataException($"Unknown instruction {statement.Instruction}");
-
-        var instructionParamInfo = instruction.GetParameters();
-        if (statement.OperandList.Count != instructionParamInfo.Length)
-            throw new ArgumentException(
-                $"{instruction.Name} takes {instructionParamInfo.Length} arguments, " +
-                $"but {statement.OperandList.Count} were given");
-
-        var instructionArgs = new List<object>();
-        foreach (var (First, Second) in instructionParamInfo.Zip(statement.OperandList.Operands))
-        {
-            if (First.ParameterType == typeof(byte))
-                instructionArgs.Add(Second.ToImmediateData());
-
-            else if (First.ParameterType == typeof(ushort))
-                instructionArgs.Add(Second.To16bitAdress());
-
-            else if (First.ParameterType == typeof(Register))
-                instructionArgs.Add(Second.ToRegister());
-
-            else if (First.ParameterType == typeof(RegisterPair))
-                instructionArgs.Add(Second.ToRegisterPair());
-
-            else throw new InvalidDataException("Unhandled type");
-        }
-
-        if (instruction.ReturnType == typeof(byte[]))
-        {
-            var bytes = (byte[])instruction.Invoke(compiler, instructionArgs.ToArray())!;
-        }
-
-        uint code = (uint)instruction.Invoke(compiler, instructionArgs.ToArray())!;
-
-        ProgramCounter += (code <= 0xFF) ? 1 : (code <= 0xFFFF) ? 2 : 3;
-    }
-
-}
-
-
-
-class Label
-{
-    public string Name { get; }
-    public ushort Value { get; set; }
-
-    public Label(string name, ushort value)
-    {
-        Name = name;
-        Value = value;
-    }
-}
-
-
-interface IOperand
-{
-    Register ToRegister();
-    RegisterPair ToRegisterPair();
-    byte ToImmediateData();
-    ushort To16bitAdress();
-
-    string ToString();
-}
-
-interface IOperandMultiple
-{
-    public int Count { get; }
-
-    public IEnumerable<IOperand> Operands { get; }
-
-    public IOperand First { get; }
-
-    public IOperand Second { get; }
-}
-
-class OperandList : IOperandMultiple
-{
-    public int Count => _operands.Count;
-
-    public IEnumerable<IOperand> Operands => _operands;
-
-    private List<IOperand> _operands = new ();
-
-    public IOperand First => _operands.First();
-
-    public IOperand Second => _operands.ElementAt(1);
-
-    public void Add(IOperand operand) => _operands.Add(operand);
-}
-
-class OperandNumeric : IOperand
-{
-    private int _value;
-
-    private string _valueString;
-
-    private void Parse(string value)
-    {
-        var dataParser = new IntelDataParser();
-
-        char last = value.ToUpper().Last();
-
-        if (last == 'H')
-            _value = dataParser.ParseHexadecimal(value);
-        else if (last == 'O' || last == 'Q')
-            _value = dataParser.ParseOctal(value);
-        else if (last == 'B')
-            _value = dataParser.ParseBinary(value);
-        else if (last == 'D' || char.IsDigit(last))
-            _value = dataParser.ParseDecimal(value);
-        else 
-            throw new InvalidDataException($"{value} is invalid numeric value");
-    }
-
-    public OperandNumeric(string value)
-    {
-        _valueString = value;
-        Parse(value);
-    }
-
-    public ushort To16bitAdress()
-    {
-        if (_value > 0xFFFF)
-            throw new InvalidCastException("Cannot convert value to 16 bit adr. Value greater than 16 bit");
-
-        return IntelDataParser.SwapBytes((ushort)_value);
-    }
-
-    public byte ToImmediateData()
-    {
-        if (_value > 0xFF)
-            throw new InvalidCastException("Cannot convert value to 8 bit data. Value greater than 8 bit");
-
-        return (byte)_value;
-    }
-
-    public Register ToRegister()
-    {
-        if (_value > 7 || _value < 0)
-            throw new InvalidCastException("Cannot convert value to register. Unexisting register");
-
-        return (Register)_value;
-    }
-
-    public RegisterPair ToRegisterPair()
-    {
-        throw new InvalidCastException("Numeric value cannot be specified as Register Pair");
-    }
-
-    public override string ToString()
-    {
-        return _valueString;
-    }
-}
-
-class OperandProgramCounter: IOperand
-{
-    private ushort _pgCounter;
-
-    public string Value { get; private set; }
-    public OperandProgramCounter(ushort pgCounter)
-    {
-        _pgCounter = pgCounter;
-    }
-
-    public ushort To16bitAdress() => IntelDataParser.SwapBytes((ushort)_pgCounter);
-
-    public byte ToImmediateData() =>
-        throw new InvalidCastException("Program Counter cannot be specified as 8bit data");
-
-    public Register ToRegister() =>
-        throw new InvalidCastException("Program Counter cannot be specified as Register");
-
-    public RegisterPair ToRegisterPair() =>
-        throw new InvalidCastException("Program Counter cannot be specified as Register Pair");
-
-    public override string ToString()
-    {
-        return _pgCounter.ToString();
-    }
-}
-
-class OperandLabelAssignedValue : IOperand
-{
-    private Label _label;
-
-    public OperandLabelAssignedValue(Label label)
-    {
-        _label = label;
-    }
-
-    public ushort To16bitAdress()
-    {
-        if (_label.Value > 0xFFFF)
-            throw new InvalidCastException(
-                $"Cannot convert label {_label.Name} to 16 bit adress. " +
-                $"Value {_label.Value} is greater than 0xFFFF");
-
-        return IntelDataParser.SwapBytes(_label.Value);
-    }
-
-    public byte ToImmediateData()
-    {
-        if (_label.Value > 0xFF)
-            throw new InvalidCastException(
-                $"Cannot convert label {_label.Name} to 8 bit data. " +
-                $"Value {_label.Value} is greater than 0xFF");
-
-        return (byte)_label.Value;
-    }
-
-    public Register ToRegister()
-    {
-        if (_label.Value > 7 || _label.Value < 0)
-            throw new InvalidCastException(
-                $"Cannot convert label {_label.Name} to register. " +
-                $"Value {_label.Value} is out of range");
-
-        return (Register)_label.Value;
-    }
-
-    public RegisterPair ToRegisterPair()
-    {
-        return _label.Name switch
-        {
-            "B" => RegisterPair.BC,
-            "D" => RegisterPair.DE,
-            "H" => RegisterPair.HL,
-            "SP" => RegisterPair.SP,
-            "PSW" => RegisterPair.PSW,
-            _ => throw new InvalidCastException($"{_label.Name} is invalid Register Pair name"),
-        };
-    }
-
-    public override string ToString()
-    {
-        return _label.Name;
-    }
+    private string FormatMachineCode(byte[]? code) =>
+        BitConverter.ToString(code).Replace("-", "");
 }

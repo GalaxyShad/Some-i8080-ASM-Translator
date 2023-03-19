@@ -3,7 +3,9 @@
 class Lexer
 {
     private readonly string[] _instructionTable = 
-        InstructionTranslator.GetInstructionNames().ToArray();
+        InstructionTranslator.GetInstructionNames()
+        .Concat(Preproccesor.GetPseudoInstructrions())
+        .ToArray();
 
     private string _sourceCode;
 
@@ -11,10 +13,7 @@ class Lexer
 
     private char CurrentChar { get => (_pos < _sourceCode.Length) ? _sourceCode[_pos] : '\0'; }
 
-    private void NextChar()
-    {
-        _pos++;
-    }
+    private void NextChar() => _pos++;
 
     public Lexer(string sourceCode)
     {
@@ -23,7 +22,7 @@ class Lexer
 
     private void PassWhiteSpaces()
     {
-        while (char.IsWhiteSpace(CurrentChar))
+        while (char.IsWhiteSpace(CurrentChar) && CurrentChar is not '\n') 
             NextChar();
     }
 
@@ -43,20 +42,18 @@ class Lexer
         if (_instructionTable.Contains(value))
         {
             if (CurrentChar == ':')
-            {
-                throw new Exception("Label cannot be named by existing instruction name");
-            }
+                throw new Exception($"Label cannot be named by existing instruction name \"{value}\"");
 
-            return new Token { TokenType = TokenType.OPCODE, Value = value };
+            return new Token { TokenType = TokenType.Instruction, Value = value };
         }
 
         if (CurrentChar == ':')
         {
             NextChar();
-            return new Token { TokenType = TokenType.LABEL, Value = value };
+            return new Token { TokenType = TokenType.Label, Value = value };
         }
 
-        return new Token { TokenType = TokenType.SYMBOL, Value = value };
+        return new Token { TokenType = TokenType.Symbol, Value = value };
     }
 
     private Token ProcNumbers()
@@ -72,7 +69,7 @@ class Lexer
             NextChar();
         }
 
-        return new Token { TokenType = TokenType.NUMBER, Value = value };
+        return new Token { TokenType = TokenType.Number, Value = value };
     }
 
     private Token ProcComment()
@@ -87,7 +84,7 @@ class Lexer
             NextChar();
         }
 
-        return new Token { TokenType = TokenType.COMMENT, Value = value.Trim() };
+        return new Token { TokenType = TokenType.Comment, Value = value.Trim() };
     }
 
     private Token ProcString()
@@ -107,7 +104,7 @@ class Lexer
 
         NextChar();
 
-        return new Token { TokenType = TokenType.STRING, Value = value.Trim() };
+        return new Token { TokenType = TokenType.String, Value = value.Trim() };
     }
 
     private Token ProcProgramCounterData()
@@ -117,7 +114,7 @@ class Lexer
         value += CurrentChar;
         NextChar();
 
-        return new Token { TokenType = TokenType.PG_DATA, Value = value };
+        return new Token { TokenType = TokenType.ProgramCounterData, Value = value };
     }
 
     private Token ProcComma()
@@ -127,7 +124,7 @@ class Lexer
         value += CurrentChar;
         NextChar();
 
-        return new Token { TokenType = TokenType.COMMA, Value = value };
+        return new Token { TokenType = TokenType.Comma, Value = value };
     }
 
     public Token Next()
@@ -139,6 +136,11 @@ class Lexer
         if (CurrentChar == '\0')
         {
             return new Token { TokenType = TokenType.EOF };
+        }
+        else if (CurrentChar == '\n')
+        {
+            NextChar();
+            return new Token { TokenType = TokenType.NewLine };
         }
         else if (IsCharLetterOrSpecialSym(CurrentChar))
         {
@@ -167,11 +169,8 @@ class Lexer
 
         NextChar();
 
-        return new Token { TokenType = TokenType.UNKNOWN, Value = value };
+        return new Token { TokenType = TokenType.Unknown, Value = value };
     }
 
     private bool IsCharLetterOrSpecialSym(char c) => (c >= 'A' && c <= 'Z') || c == '?' || c == '@' || c == '_';
-
-    private bool IsHexNumber(char c) => char.IsDigit(c) || (c >= 'A' && c <= 'F');
-
 }

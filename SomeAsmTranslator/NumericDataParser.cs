@@ -2,7 +2,7 @@
 
 namespace MyProject;
 
-class IntelDataParser
+class NumericDataParser
 {
     private bool IsValidHex(string hex) => 
         Regex.IsMatch(hex, "^\\d+([\\dA-F])*H$");

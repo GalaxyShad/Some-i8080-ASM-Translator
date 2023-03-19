@@ -1,4 +1,6 @@
-﻿namespace MyProject;
+﻿using MyProject;
+
+namespace SomeAsmTranslator.Operands;
 
 class OperandLabel : IOperand
 {
@@ -9,7 +11,7 @@ class OperandLabel : IOperand
         _label = label;
     }
 
-    public ushort To16bitAdress() => IntelDataParser.SwapBytes(_label.Value);
+    public ushort To16bitAdress() => NumericDataParser.SwapBytes(_label.Value);
 
     public byte ToImmediateData() =>
         throw new InvalidCastException("Label cannot be converted to 8bit data");
