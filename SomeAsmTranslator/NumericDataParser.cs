@@ -9,7 +9,7 @@ class NumericDataParser
     private bool IsValidDecimal(string dec) => 
         Regex.IsMatch(dec, "^\\d+D?$");
     private bool IsValidOctal(string oct) => 
-        Regex.IsMatch(oct, "^[0-7] +[OQ]$");
+        Regex.IsMatch(oct, "^[0-7]+[OQ]$");
     private bool IsValidBinary(string bin) => 
         Regex.IsMatch(bin, "^[01]+B$");
 
