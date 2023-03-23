@@ -67,6 +67,10 @@ class Assembler
         if (BitConverter.IsLittleEndian)
             Array.Reverse(bytes);
 
+        // NOP Fix
+        if (bytes.Last() == 0)
+            return new byte[] { 0 };
+
         return bytes.SkipWhile(x => x == 0).ToArray();
     }
 }
