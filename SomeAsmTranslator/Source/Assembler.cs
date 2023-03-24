@@ -14,21 +14,22 @@ class Assembler
 
         foreach (var line in prep.Procces(source))
         {
-            line.Bytes = pseudoList.Contains(line.AssemblyStatement.Instruction) == false ? 
-                AssembleStatement(line.AssemblyStatement) : null;
+            line.Bytes = AssembleStatement(line.AssemblyStatement);
+            if (line.Bytes == null) line.Address = null;
+
             list.Add(line);
         }
 
         return list;
     }
 
-    public byte[] AssembleStatement(AssemblyStatement statement)
+    public byte[]? AssembleStatement(AssemblyStatement statement)
     {
         if (statement.Instruction == null)
-            return new byte[] { 0 };
+            return null;
 
         if (Preproccesor.GetPseudoInstructrions().Contains(statement.Instruction))
-            return new byte[] { 0 };
+            return null;
 
         var compiler = new InstructionTranslator();
 
