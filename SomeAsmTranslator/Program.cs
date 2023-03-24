@@ -1,7 +1,9 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.VisualBasic;
 using SomeAsmTranslator.Operands;
 using SomeAsmTranslator.Source;
+using System.Collections;
 
 namespace MyProject;
 class Program
@@ -22,6 +24,7 @@ class Program
 
         bool isGenerateWord = false;
         bool isGenerateCsv = false;
+        bool isGenerateBinary = false;
 
         foreach (var arg in args)
         {
@@ -38,11 +41,15 @@ class Program
                     case "-samelinebyte":
                         listingGenerator.IsMachineCodeLineSeperation = false;
                         break;
+                    case "-bin":
+                        isGenerateBinary = true;
+                        break;
                     case "-help":
                         Console.WriteLine(
                             "-word          - create listing in .docx word table\n" +
                             "-csv           - create .csv table listing file\n" +
-                            "-samelinebyte  - keep all instruction bytes on the same line\n"
+                            "-samelinebyte  - keep all instruction bytes on the same line\n" +
+                            "-bin           - generate binary file"
                         );
                         break;
                     default:
@@ -122,6 +129,11 @@ class Program
             sw.Close();
         }
 
+        if (isGenerateBinary)
+        {
+            SaveToBinary(list, $"{outFilePath}.i8080asm.bin");
+        }
+
         var sww = new StreamWriter($"{outFilePath}.i8080asm.txt");
         foreach (var line in listing)
         {
@@ -138,7 +150,37 @@ class Program
         }
         sww.Close();
 
+
+
         Console.WriteLine("\nSuccessfull");
+    }
+
+    static void SaveToBinary(IEnumerable<AssemblyLine> asmLineList, string filepath)
+    {
+        var orderedAsmLine = asmLineList.OrderBy(x => x.Address).ToList();
+        AssemblyLine? previousLine = null;
+
+        using (var fs = new FileStream(filepath, FileMode.Create, FileAccess.Write))
+        {
+            foreach (var line in orderedAsmLine)
+            {
+                if (line.Bytes == null) { continue; };
+
+                if (previousLine == null)
+                {
+                    fs.Write(line.Bytes);
+                    previousLine = line;
+                    continue;
+                }
+
+                int dif = (int)((line.Address - (previousLine.Address + previousLine.Bytes.Length)));
+                for (int i = 0; i < dif; i++)
+                    fs.WriteByte(0);
+
+                fs.Write(line.Bytes);
+                previousLine = line;
+            }
+        }
     }
 
     static void SaveToWord(IEnumerable<ListingLine> listing, string filepath)

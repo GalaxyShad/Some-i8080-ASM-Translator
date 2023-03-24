@@ -1,7 +1,12 @@
-﻿MVI A, 00h
+﻿ORG 0800h
+MVI A, 00h
 MVI B, 00h
 MVI C, 00h
+
+ORG 0900h
 MVI D, 00h
 MVI E, 00h
+
+ORG 0A00h
 MVI H, 00h
 MVI l, 00h
