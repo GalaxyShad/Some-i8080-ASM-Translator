@@ -2,7 +2,7 @@
   "profiles": {
     "SomeAsmTranslator": {
       "commandName": "Project",
-      "commandLineArgs": "-help -csv -word -samelinebyte C:\\Users\\vadim\\Desktop\\ASM80\\test.asm"
+      "commandLineArgs": "-help -csv -word -samelinebyte $(MSBuildProjectDirectory)/Test/Test.asm"
     }
   }
 }
