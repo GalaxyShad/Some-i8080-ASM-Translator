@@ -126,7 +126,7 @@ class Program
         foreach (var line in listing)
         {
             var stringLine =
-                $"{line.Address} | " +
+                $"{line.Address.PadLeft(4)} | " +
                 $"{line.MachineCode.PadLeft(maxMachineCodeWidth)} | " +
                 $"{line.Label.PadRight(maxLabelWidth)} | " +
                 $"{line.AsmCode.PadRight(maxAsmCodeWidth)} ; " +
@@ -267,5 +267,5 @@ class ListingGenerator
         $"{instruction ?? string.Empty} {string.Join(",", opList.Operands)}";
 
     private string FormatMachineCode(byte[]? code) =>
-        BitConverter.ToString(code).Replace("-", "");
+        (code != null) ? BitConverter.ToString(code).Replace("-", "") : string.Empty;
 }

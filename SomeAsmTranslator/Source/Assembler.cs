@@ -10,9 +10,12 @@ class Assembler
 
         var prep = new Preproccesor();
 
+        var pseudoList = Preproccesor.GetPseudoInstructrions();
+
         foreach (var line in prep.Procces(source))
         {
-            line.Bytes = AssembleStatement(line.AssemblyStatement);
+            line.Bytes = pseudoList.Contains(line.AssemblyStatement.Instruction) == false ? 
+                AssembleStatement(line.AssemblyStatement) : null;
             list.Add(line);
         }
 

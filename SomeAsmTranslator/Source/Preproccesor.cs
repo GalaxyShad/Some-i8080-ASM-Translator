@@ -16,12 +16,14 @@ class Preproccesor
             if (statement.Label != null)
                 statement.Label.Value = (ushort)_pgCounter;
 
-            lineList.Add(new AssemblyLine(_pgCounter, statement));
+            var asmLine = new AssemblyLine(_pgCounter, statement);
 
             if (statement.Instruction != null)
             {
                 if (statement.Instruction == "ORG")
                 {
+                    asmLine.Bytes = null;
+                    asmLine.Address = null;
                     _pgCounter = NumericDataParser.SwapBytes(statement.OperandList.First.To16bitAdress());
                 }
 
@@ -54,7 +56,7 @@ class Preproccesor
                 }
             }
 
-
+            lineList.Add(asmLine);
             statement = parser.Next();
         }
 
