@@ -74,7 +74,7 @@ class Assembler
             Array.Reverse(bytes);
 
         // NOP Fix
-        if (bytes.Last() == 0)
+        if (statement.Instruction == "NOP")
             return new byte[] { 0 };
 
         return bytes.SkipWhile(x => x == 0).ToArray();
