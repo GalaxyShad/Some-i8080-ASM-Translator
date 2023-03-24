@@ -1,7 +1,8 @@
 ﻿using System.Collections.Specialized;
 using System.Runtime.CompilerServices;
+using MyProject;
 
-namespace MyProject;
+namespace SomeAsmTranslator.Source;
 
 
 class InstructionTranslator
@@ -13,8 +14,8 @@ class InstructionTranslator
 
 
     // Single Register Instructions
-    public uint INR(Register reg) => 0b00_000_100 | ((uint)reg << 3);
-    public uint DCR(Register reg) => 0b00_000_101 | ((uint)reg << 3);
+    public uint INR(Register reg) => 0b00_000_100 | (uint)reg << 3;
+    public uint DCR(Register reg) => 0b00_000_101 | (uint)reg << 3;
     public uint CMA() => 0b0010_1111;
     public uint DAA() => 0b0010_0111;
 
@@ -27,7 +28,7 @@ class InstructionTranslator
         if (dstReg == Register.M && srcReg == Register.M)
             throw new InvalidDataException("In MOV Dst and Src cannot both = M (110b)");
 
-        return 0b01_000_000 | ((uint)dstReg << 3) | ((uint)srcReg);
+        return 0b01_000_000 | (uint)dstReg << 3 | (uint)srcReg;
     }
 
     public uint STAX(RegisterPair regPair)
@@ -35,7 +36,7 @@ class InstructionTranslator
         if (regPair != RegisterPair.BC && regPair != RegisterPair.DE)
             throw new InvalidDataException("In STAX only BC and DE can be specified as register pairs");
 
-        return 0b000_0_0010 | ((uint)regPair << 4);
+        return 0b000_0_0010 | (uint)regPair << 4;
     }
 
     public uint LDAX(RegisterPair regPair)
@@ -43,7 +44,7 @@ class InstructionTranslator
         if (regPair != RegisterPair.BC && regPair != RegisterPair.DE)
             throw new InvalidDataException("In LDAX only BC and DE can be specified as register pairs");
 
-        return 0b000_0_1010 | ((uint)regPair << 4);
+        return 0b000_0_1010 | (uint)regPair << 4;
     }
 
     // Register or memory to accumulator instructions
@@ -84,7 +85,7 @@ class InstructionTranslator
         if (regPair == RegisterPair.PSW)
             throw new ArgumentException("PSW cannot be specified in DAD instruction");
 
-        return 0b00_00_1001 | (((regPair == RegisterPair.SP) ? 0b11 : (uint)regPair) << 4);
+        return 0b00_00_1001 | (regPair == RegisterPair.SP ? 0b11 : (uint)regPair) << 4;
     }
 
     public uint INX(RegisterPair regPair)
@@ -92,7 +93,7 @@ class InstructionTranslator
         if (regPair == RegisterPair.PSW)
             throw new ArgumentException("PSW cannot be specified in INX instruction");
 
-        return 0b00_00_0011 | (((regPair == RegisterPair.SP) ? 0b11 : (uint)regPair) << 4);
+        return 0b00_00_0011 | (regPair == RegisterPair.SP ? 0b11 : (uint)regPair) << 4;
     }
 
     public uint DCX(RegisterPair regPair)
@@ -100,7 +101,7 @@ class InstructionTranslator
         if (regPair == RegisterPair.PSW)
             throw new ArgumentException("PSW cannot be specified in DCX instruction");
 
-        return 0b00_00_1011 | (((regPair == RegisterPair.SP) ? 0b11 : (uint)regPair) << 4);
+        return 0b00_00_1011 | (regPair == RegisterPair.SP ? 0b11 : (uint)regPair) << 4;
     }
 
     public uint XCHG() => 0b1110_1011;
@@ -114,55 +115,55 @@ class InstructionTranslator
         if (regPair == RegisterPair.PSW)
             throw new ArgumentException("PSW cannot be specified in LXI instruction");
 
-        return ((0b00_00_0001 | (((regPair == RegisterPair.SP) ? 0b11 : (uint)regPair) << 4)) << 16) | data;
+        return (0b00_00_0001 | (regPair == RegisterPair.SP ? 0b11 : (uint)regPair) << 4) << 16 | data;
     }
-    public uint MVI(Register reg, byte data) => ((0b00_000_110 | ((uint)reg << 3)) << 8) | (uint)data;
-    public uint ADI(byte data) => (0b11_000_110 << 8) | (uint)data;
-    public uint ACI(byte data) => (0b11_001_110 << 8) | (uint)data;
-    public uint SUI(byte data) => (0b11_010_110 << 8) | (uint)data;
-    public uint SBI(byte data) => (0b11_011_110 << 8) | (uint)data;
-    public uint ANI(byte data) => (0b11_100_110 << 8) | (uint)data;
-    public uint XRI(byte data) => (0b11_101_110 << 8) | (uint)data;
-    public uint ORI(byte data) => (0b11_110_110 << 8) | (uint)data;
-    public uint CPI(byte data) => (0b11_111_110 << 8) | (uint)data;
+    public uint MVI(Register reg, byte data) => (0b00_000_110 | (uint)reg << 3) << 8 | data;
+    public uint ADI(byte data) => 0b11_000_110 << 8 | (uint)data;
+    public uint ACI(byte data) => 0b11_001_110 << 8 | (uint)data;
+    public uint SUI(byte data) => 0b11_010_110 << 8 | (uint)data;
+    public uint SBI(byte data) => 0b11_011_110 << 8 | (uint)data;
+    public uint ANI(byte data) => 0b11_100_110 << 8 | (uint)data;
+    public uint XRI(byte data) => 0b11_101_110 << 8 | (uint)data;
+    public uint ORI(byte data) => 0b11_110_110 << 8 | (uint)data;
+    public uint CPI(byte data) => 0b11_111_110 << 8 | (uint)data;
 
     // Direct Addresing Instructions
-    public uint SHLD(ushort adr) => (0b001_00_010 << 16) | (uint)adr;
-    public uint LHLD(ushort adr) => (0b001_01_010 << 16) | (uint)adr;
-    public uint STA(ushort adr) => (0b001_10_010 << 16) | (uint)adr;
-    public uint LDA(ushort adr) => (0b001_11_010 << 16) | (uint)adr;
+    public uint SHLD(ushort adr) => 0b001_00_010 << 16 | (uint)adr;
+    public uint LHLD(ushort adr) => 0b001_01_010 << 16 | (uint)adr;
+    public uint STA(ushort adr) => 0b001_10_010 << 16 | (uint)adr;
+    public uint LDA(ushort adr) => 0b001_11_010 << 16 | (uint)adr;
 
     // Jump Instructions
     public uint PCHL() => 0b1110_1001;
-    public uint JMP(ushort adr) => (0b11_000_011 << 16) | (uint)adr;
+    public uint JMP(ushort adr) => 0b11_000_011 << 16 | (uint)adr;
 
-    public uint JNZ(ushort adr) => (0b11_000_010 << 16) | (uint)adr;
-    public uint JZ(ushort adr) => (0b11_001_010 << 16) | (uint)adr;
+    public uint JNZ(ushort adr) => 0b11_000_010 << 16 | (uint)adr;
+    public uint JZ(ushort adr) => 0b11_001_010 << 16 | (uint)adr;
 
-    public uint JNC(ushort adr) => (0b11_010_010 << 16) | (uint)adr;
-    public uint JC(ushort adr) => (0b11_011_010 << 16) | (uint)adr;
+    public uint JNC(ushort adr) => 0b11_010_010 << 16 | (uint)adr;
+    public uint JC(ushort adr) => 0b11_011_010 << 16 | (uint)adr;
 
-    public uint JPO(ushort adr) => (0b11_100_010 << 16) | (uint)adr;
-    public uint JPE(ushort adr) => (0b11_101_010 << 16) | (uint)adr;
+    public uint JPO(ushort adr) => 0b11_100_010 << 16 | (uint)adr;
+    public uint JPE(ushort adr) => 0b11_101_010 << 16 | (uint)adr;
 
-    public uint JP(ushort adr) => (0b11_110_010 << 16) | (uint)adr;
-    public uint JM(ushort adr) => (0b11_111_010 << 16) | (uint)adr;
+    public uint JP(ushort adr) => 0b11_110_010 << 16 | (uint)adr;
+    public uint JM(ushort adr) => 0b11_111_010 << 16 | (uint)adr;
 
 
     // Call subroutine instructions
-    public uint CALL(ushort adr) => (0b11_001_101 << 16) | (uint)adr;
+    public uint CALL(ushort adr) => 0b11_001_101 << 16 | (uint)adr;
 
-    public uint CNZ(ushort adr) => (0b11_000_100 << 16) | (uint)adr;
-    public uint CZ(ushort adr) => (0b11_001_100 << 16) | (uint)adr;
+    public uint CNZ(ushort adr) => 0b11_000_100 << 16 | (uint)adr;
+    public uint CZ(ushort adr) => 0b11_001_100 << 16 | (uint)adr;
 
-    public uint CNC(ushort adr) => (0b11_010_100 << 16) | (uint)adr;
-    public uint CC(ushort adr) => (0b11_011_100 << 16) | (uint)adr;
+    public uint CNC(ushort adr) => 0b11_010_100 << 16 | (uint)adr;
+    public uint CC(ushort adr) => 0b11_011_100 << 16 | (uint)adr;
 
-    public uint CPO(ushort adr) => (0b11_100_100 << 16) | (uint)adr;
-    public uint CPE(ushort adr) => (0b11_101_100 << 16) | (uint)adr;
+    public uint CPO(ushort adr) => 0b11_100_100 << 16 | (uint)adr;
+    public uint CPE(ushort adr) => 0b11_101_100 << 16 | (uint)adr;
 
-    public uint CP(ushort adr) => (0b11_110_100 << 16) | (uint)adr;
-    public uint CM(ushort adr) => (0b11_111_100 << 16) | (uint)adr;
+    public uint CP(ushort adr) => 0b11_110_100 << 16 | (uint)adr;
+    public uint CM(ushort adr) => 0b11_111_100 << 16 | (uint)adr;
 
 
     // Return from subroutine instructions
@@ -186,7 +187,7 @@ class InstructionTranslator
         if (exp > 7)
             throw new ArgumentException("RST arg must evaluate to a number in range 0 to 7");
 
-        return 0b11_000_111 | ((uint)exp << 3);
+        return 0b11_000_111 | (uint)exp << 3;
     }
 
     // Interrupt flip flop instructions
@@ -194,15 +195,15 @@ class InstructionTranslator
     public uint DI() => 0b1111_0011;
 
     // Input/Output instructions
-    public uint IN(byte exp) => (0b1101_1011 << 8) | (uint)exp;
-    public uint OUT(byte exp) => (0b1101_0011 << 8) | (uint)exp;
+    public uint IN(byte exp) => 0b1101_1011 << 8 | (uint)exp;
+    public uint OUT(byte exp) => 0b1101_0011 << 8 | (uint)exp;
 
     // Halt instruction
     public uint HLT() => 0b0111_0110;
 
     public byte[] DB(byte[] bytes) => bytes;
 
-    public byte[] DW(ushort word) => new byte[] { (byte)(word & 0xF), (byte)(word >> 8)};
+    public byte[] DW(ushort word) => new byte[] { (byte)(word & 0xF), (byte)(word >> 8) };
 
     public byte[] DS(int count) => new byte[count];
 

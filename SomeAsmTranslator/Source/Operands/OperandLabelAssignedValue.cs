@@ -1,4 +1,6 @@
-﻿namespace MyProject;
+﻿using SomeAsmTranslator.Source;
+
+namespace MyProject;
 
 class OperandLabelAssignedValue : IOperand
 {

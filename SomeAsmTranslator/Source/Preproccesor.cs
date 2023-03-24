@@ -1,4 +1,6 @@
-﻿namespace MyProject;
+﻿using MyProject;
+
+namespace SomeAsmTranslator.Source;
 
 class Preproccesor
 {
@@ -33,7 +35,7 @@ class Preproccesor
 
                 else
                 {
-                    if (statement.Instruction is ("DB" or "DS" or "DW"))
+                    if (statement.Instruction is "DB" or "DS" or "DW")
                     {
                         var args = new List<object>();
 
@@ -51,7 +53,7 @@ class Preproccesor
                         _pgCounter += InstructionTranslator.GetInstructionByteCount(statement.Instruction);
                 }
             }
-                
+
 
             statement = parser.Next();
         }
@@ -61,6 +63,6 @@ class Preproccesor
 
     private int _pgCounter = 0x800;
 
-    public static IEnumerable<string> GetPseudoInstructrions() => 
+    public static IEnumerable<string> GetPseudoInstructrions() =>
         new string[] { "ORG", "EQU", "SET", "END", "IF", "ENDIF", "MACRO", "ENDM" };
 }

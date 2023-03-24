@@ -1,4 +1,6 @@
-﻿namespace MyProject;
+﻿using MyProject;
+
+namespace SomeAsmTranslator.Source;
 
 class Assembler
 {

@@ -1,6 +1,7 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using SomeAsmTranslator.Operands;
+using SomeAsmTranslator.Source;
 
 namespace MyProject;
 class Program

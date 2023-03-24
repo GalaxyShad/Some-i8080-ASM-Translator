@@ -1,7 +1,8 @@
-﻿using SomeAsmTranslator.Operands;
+﻿using MyProject;
+using SomeAsmTranslator.Operands;
 using System.Reflection;
 
-namespace MyProject;
+namespace SomeAsmTranslator.Source;
 
 class Parser
 {
@@ -10,9 +11,9 @@ class Parser
         PreScan(source);
     }
 
-    private readonly Dictionary<string, Label> _labelList = new ();
+    private readonly Dictionary<string, Label> _labelList = new();
 
-    private readonly Dictionary<string, Label> _setList = new ()
+    private readonly Dictionary<string, Label> _setList = new()
     {
         { "B", new Label("B", 0) },
         { "C", new Label("C", 1) },
@@ -24,13 +25,13 @@ class Parser
         { "A", new Label("A", 7) },
     };
 
-    private readonly Queue<Token> _tokenQueue = new ();
+    private readonly Queue<Token> _tokenQueue = new();
 
     private Token TokenAt() =>
-        (_tokenQueue.Count != 0) ? _tokenQueue.Peek() : new Token { TokenType = TokenType.EOF, Value = "EOF" };
+        _tokenQueue.Count != 0 ? _tokenQueue.Peek() : new Token { TokenType = TokenType.EOF, Value = "EOF" };
 
-    private Token TokenEat() => 
-        (_tokenQueue.Count != 0) ? _tokenQueue.Dequeue() : new Token { TokenType = TokenType.EOF, Value = "EOF" };
+    private Token TokenEat() =>
+        _tokenQueue.Count != 0 ? _tokenQueue.Dequeue() : new Token { TokenType = TokenType.EOF, Value = "EOF" };
 
     private void PreScan(string source)
     {
@@ -105,7 +106,7 @@ class Parser
             case TokenType.Symbol:
                 if (_labelList.ContainsKey(TokenAt().Value))
                     operand = new OperandLabel(_labelList[TokenAt().Value]);
-                    
+
                 else if (_setList.ContainsKey(TokenAt().Value))
                     operand = new OperandLabelAssignedValue(_setList[TokenAt().Value]);
 
@@ -126,12 +127,12 @@ class Parser
     }
 
     private Label? ParseLabel() =>
-        (TokenAt().TokenType is TokenType.Label) ? _labelList[TokenEat().Value] : null;
+        TokenAt().TokenType is TokenType.Label ? _labelList[TokenEat().Value] : null;
 
     private string? ParseInstruction() =>
-        (TokenAt().TokenType is TokenType.Instruction) ? TokenEat().Value : null;
+        TokenAt().TokenType is TokenType.Instruction ? TokenEat().Value : null;
 
     private string? ParseComment() =>
-        (TokenAt().TokenType is TokenType.Comment) ? TokenEat().Value : null;
+        TokenAt().TokenType is TokenType.Comment ? TokenEat().Value : null;
 
 }

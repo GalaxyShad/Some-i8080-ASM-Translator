@@ -1,8 +1,10 @@
-﻿namespace MyProject;
+﻿using MyProject;
+
+namespace SomeAsmTranslator.Source;
 
 class Lexer
 {
-    private readonly string[] _instructionTable = 
+    private readonly string[] _instructionTable =
         InstructionTranslator.GetInstructionNames()
         .Concat(Preproccesor.GetPseudoInstructrions())
         .ToArray();
@@ -11,7 +13,7 @@ class Lexer
 
     private int _pos = 0;
 
-    private char CurrentChar { get => (_pos < _sourceCode.Length) ? _sourceCode[_pos] : '\0'; }
+    private char CurrentChar { get => _pos < _sourceCode.Length ? _sourceCode[_pos] : '\0'; }
 
     private void NextChar() => _pos++;
 
@@ -22,7 +24,7 @@ class Lexer
 
     private void PassWhiteSpaces()
     {
-        while (char.IsWhiteSpace(CurrentChar) && CurrentChar is not '\n') 
+        while (char.IsWhiteSpace(CurrentChar) && CurrentChar is not '\n')
             NextChar();
     }
 
@@ -172,5 +174,5 @@ class Lexer
         return new Token { TokenType = TokenType.Unknown, Value = value };
     }
 
-    private bool IsCharLetterOrSpecialSym(char c) => (c >= 'A' && c <= 'Z') || c == '?' || c == '@' || c == '_';
+    private bool IsCharLetterOrSpecialSym(char c) => c >= 'A' && c <= 'Z' || c == '?' || c == '@' || c == '_';
 }
