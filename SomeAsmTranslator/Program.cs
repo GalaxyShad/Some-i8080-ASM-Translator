@@ -25,6 +25,7 @@ class Program
         bool isGenerateWord = false;
         bool isGenerateCsv = false;
         bool isGenerateBinary = false;
+        bool isGenerateMarkdown = false;
 
         foreach (var arg in args)
         {
@@ -44,12 +45,16 @@ class Program
                     case "-bin":
                         isGenerateBinary = true;
                         break;
+                    case "-md":
+                        isGenerateMarkdown = true;
+                        break;
                     case "-help":
                         Console.WriteLine(
                             "-word          - create listing in .docx word table\n" +
                             "-csv           - create .csv table listing file\n" +
                             "-samelinebyte  - keep all instruction bytes on the same line\n" +
-                            "-bin           - generate binary file"
+                            "-bin           - generate binary file\n" +
+                            "-md            - generate markdown"           
                         );
                         break;
                     default:
@@ -132,6 +137,27 @@ class Program
         if (isGenerateBinary)
         {
             SaveToBinary(list, $"{outFilePath}.i8080asm.bin");
+        }
+
+        if (isGenerateMarkdown)
+        {
+            var sw = new StreamWriter($"{outFilePath}.i8080asm.md");
+
+            sw.WriteLine("| ADR | MC | LABEL | ASM | COMMENT |");
+            sw.WriteLine("|------|----|-------|-------------|-|");
+            foreach (var line in listing)
+            {
+                var stringLine =
+                    $"| " +
+                    $"{line.Address.PadLeft(4)} | " +
+                    $"{line.MachineCode.PadLeft(maxMachineCodeWidth)} | " +
+                    $"{line.Label.PadRight(maxLabelWidth)} | " +
+                    $"{line.AsmCode.PadRight(maxAsmCodeWidth)} | " +
+                    $"{line.Comment} |";
+
+                sw.WriteLine(stringLine);
+            }
+            sw.Close();
         }
 
         var sww = new StreamWriter($"{outFilePath}.i8080asm.txt");
