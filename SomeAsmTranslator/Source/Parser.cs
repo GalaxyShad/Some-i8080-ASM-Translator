@@ -6,11 +6,6 @@ namespace SomeAsmTranslator.Source;
 
 class Parser
 {
-    public Parser(string source)
-    {
-        PreScan(source);
-    }
-
     private readonly Dictionary<string, Label> _labelList = new();
 
     private readonly Dictionary<string, Label> _setList = new()
@@ -27,11 +22,16 @@ class Parser
 
     private readonly Queue<Token> _tokenQueue = new();
 
-    private Token TokenAt() =>
-        _tokenQueue.Count != 0 ? _tokenQueue.Peek() : new Token { TokenType = TokenType.EOF, Value = "EOF" };
+    public Parser(string source)
+    {
+        PreScan(source);
+    }
 
-    private Token TokenEat() =>
-        _tokenQueue.Count != 0 ? _tokenQueue.Dequeue() : new Token { TokenType = TokenType.EOF, Value = "EOF" };
+    private Token TokenAt() => 
+        _tokenQueue.Count != 0 ? _tokenQueue.Peek() : Token.EOF;
+
+    private Token TokenEat() => 
+        _tokenQueue.Count != 0 ? _tokenQueue.Dequeue() : Token.EOF;
 
     private void PreScan(string source)
     {

@@ -13,7 +13,7 @@ class Lexer
 
     private int _pos = 0;
 
-    private char CurrentChar { get => _pos < _sourceCode.Length ? _sourceCode[_pos] : '\0'; }
+    private char CurrentChar => _pos < _sourceCode.Length ? _sourceCode[_pos] : '\0';
 
     private void NextChar() => _pos++;
 
@@ -129,49 +129,31 @@ class Lexer
         return new Token { TokenType = TokenType.Comma, Value = value };
     }
 
-    public Token Next()
+    private Token ProcNewLine()
     {
-        string value = string.Empty;
-
-        PassWhiteSpaces();
-
-        if (CurrentChar == '\0')
-        {
-            return new Token { TokenType = TokenType.EOF };
-        }
-        else if (CurrentChar == '\n')
-        {
-            NextChar();
-            return new Token { TokenType = TokenType.NewLine };
-        }
-        else if (IsCharLetterOrSpecialSym(CurrentChar))
-        {
-            return ProcLabelAndSymbols();
-        }
-        else if (char.IsNumber(CurrentChar))
-        {
-            return ProcNumbers();
-        }
-        else if (CurrentChar == ';')
-        {
-            return ProcComment();
-        }
-        else if (CurrentChar == '\'')
-        {
-            return ProcString();
-        }
-        else if (CurrentChar == '$')
-        {
-            return ProcProgramCounterData();
-        }
-        else if (CurrentChar == ',')
-        {
-            return ProcComma();
-        }
-
         NextChar();
 
-        return new Token { TokenType = TokenType.Unknown, Value = value };
+        return Token.NewLine;
+    }
+
+    public Token Next()
+    {
+        PassWhiteSpaces();
+
+        return CurrentChar switch
+        {
+            '\0' => Token.EOF,
+            '\n' => ProcNewLine(),
+            '\'' => ProcString(),
+            ';' => ProcComment(),
+            ',' => ProcComma(),
+            '$' => ProcProgramCounterData(),
+
+            var c when IsCharLetterOrSpecialSym(c) => ProcLabelAndSymbols(),
+            var c when char.IsNumber(c) => ProcNumbers(),
+
+            _ => new Token { TokenType = TokenType.Unknown, Value = string.Empty },
+        };
     }
 
     private bool IsCharLetterOrSpecialSym(char c) => c >= 'A' && c <= 'Z' || c == '?' || c == '@' || c == '_';

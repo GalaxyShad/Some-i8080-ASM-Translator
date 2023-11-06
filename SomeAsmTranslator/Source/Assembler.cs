@@ -4,15 +4,21 @@ namespace SomeAsmTranslator.Source;
 
 class Assembler
 {
+    private readonly Preproccesor _preproccessor = new();
+
     public IEnumerable<AssemblyLine> AssembleAll(string source)
     {
+        //return _preproccessor.Procces(source).Select(line => new AssemblyLine
+        //{
+        //    Address = (line.Bytes != null) ? line.Address : null,
+        //    AssemblyStatement = line.AssemblyStatement,
+        //    Bytes = AssembleStatement(line.AssemblyStatement)
+        //});
+
+
         var list = new List<AssemblyLine>();
 
-        var prep = new Preproccesor();
-
-        var pseudoList = Preproccesor.GetPseudoInstructrions();
-
-        foreach (var line in prep.Procces(source))
+        foreach (var line in _preproccessor.Procces(source))
         {
             line.Bytes = AssembleStatement(line.AssemblyStatement);
             if (line.Bytes == null) line.Address = null;
@@ -33,10 +39,7 @@ class Assembler
 
         var compiler = new InstructionTranslator();
 
-        var instruction = compiler.GetType().GetMethod(statement.Instruction);
-        if (instruction == null)
-            throw new InvalidDataException($"Unknown instruction {statement.Instruction}");
-
+        var instruction = compiler.GetType().GetMethod(statement.Instruction) ?? throw new InvalidDataException($"Unknown instruction {statement.Instruction}");
         var instructionParamInfo = instruction.GetParameters();
         if (statement.OperandList.Count != instructionParamInfo.Length)
             throw new ArgumentException(
