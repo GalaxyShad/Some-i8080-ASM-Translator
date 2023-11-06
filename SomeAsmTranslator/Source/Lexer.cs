@@ -11,6 +11,7 @@ class Lexer
 
     private readonly TextReader _sourceCodeReader;
     private int _currentChar;
+    private long _lineCounter = 1;
 
     public Lexer(string sourceCode) : this(new StringReader(sourceCode)) { }
 
@@ -48,16 +49,16 @@ class Lexer
             if (CurrentChar == ':')
                 throw new Exception($"Label cannot be named by existing instruction name \"{value}\"");
 
-            return new Token { TokenType = TokenType.Instruction, Value = value };
+            return new Token { TokenType = TokenType.Instruction, Value = value, Line = _lineCounter };
         }
 
         if (CurrentChar == ':')
         {
             NextChar();
-            return new Token { TokenType = TokenType.Label, Value = value };
+            return new Token { TokenType = TokenType.Label, Value = value, Line = _lineCounter };
         }
 
-        return new Token { TokenType = TokenType.Symbol, Value = value };
+        return new Token { TokenType = TokenType.Symbol, Value = value, Line = _lineCounter };
     }
 
     private Token ProcNumbers()
@@ -73,7 +74,7 @@ class Lexer
             NextChar();
         }
 
-        return new Token { TokenType = TokenType.Number, Value = value };
+        return new Token { TokenType = TokenType.Number, Value = value, Line = _lineCounter };
     }
 
     private Token ProcComment()
@@ -88,7 +89,7 @@ class Lexer
             NextChar();
         }
 
-        return new Token { TokenType = TokenType.Comment, Value = value.Trim() };
+        return new Token { TokenType = TokenType.Comment, Value = value.Trim(), Line = _lineCounter };
     }
 
     private Token ProcString()
@@ -108,7 +109,7 @@ class Lexer
 
         NextChar();
 
-        return new Token { TokenType = TokenType.String, Value = value.Trim() };
+        return new Token { TokenType = TokenType.String, Value = value.Trim(), Line = _lineCounter };
     }
 
     private Token ProcProgramCounterData()
@@ -118,7 +119,7 @@ class Lexer
         value += CurrentChar;
         NextChar();
 
-        return new Token { TokenType = TokenType.ProgramCounterData, Value = value };
+        return new Token { TokenType = TokenType.ProgramCounterData, Value = value, Line = _lineCounter };
     }
 
     private Token ProcComma()
@@ -128,11 +129,13 @@ class Lexer
         value += CurrentChar;
         NextChar();
 
-        return new Token { TokenType = TokenType.Comma, Value = value };
+        return new Token { TokenType = TokenType.Comma, Value = value, Line = _lineCounter };
     }
 
     private Token ProcNewLine()
     {
+        _lineCounter++;
+
         NextChar();
 
         return Token.NewLine;
@@ -154,7 +157,7 @@ class Lexer
             var c when IsCharLetterOrSpecialSym(c) => ProcLabelAndSymbols(),
             var c when char.IsNumber(c) => ProcNumbers(),
 
-            _ => throw new Exception($"sdad {(int)CurrentChar} {CurrentChar}"),
+            _ => throw new Exception($"Unknown token {(int)CurrentChar} {CurrentChar} at line {_lineCounter}"),
         };
     }
 
