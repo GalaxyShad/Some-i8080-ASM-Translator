@@ -1,4 +1,4 @@
-﻿using MyProject;
+﻿using I8080Translator;
 using SomeAsmTranslator.Source.Listing.ListingWriters.Interfaces;
 
 namespace SomeAsmTranslator.Source.Listing.ListingWriters.Writers;

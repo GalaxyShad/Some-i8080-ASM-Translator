@@ -5,7 +5,7 @@ using SomeAsmTranslator.Source.Listing.ListingWriters.Interfaces;
 using SomeAsmTranslator.Source.Listing.ListingWriters.Writers;
 using Path = System.IO.Path;
 
-namespace MyProject;
+namespace I8080Translator;
 
 partial class Program
 {

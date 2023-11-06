@@ -1,4 +1,4 @@
-﻿using MyProject;
+﻿using I8080Translator;
 
 namespace SomeAsmTranslator.Operands;
 

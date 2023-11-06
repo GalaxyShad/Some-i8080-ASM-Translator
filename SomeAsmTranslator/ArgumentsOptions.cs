@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace MyProject;
+namespace I8080Translator;
 
 public class ArgumentsOptions
 {

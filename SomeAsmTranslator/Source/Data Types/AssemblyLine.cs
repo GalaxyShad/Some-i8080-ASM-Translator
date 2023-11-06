@@ -1,4 +1,4 @@
-﻿namespace MyProject;
+﻿namespace I8080Translator;
 
 public class AssemblyLine
 {

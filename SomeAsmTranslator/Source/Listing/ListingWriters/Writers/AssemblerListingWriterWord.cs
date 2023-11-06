@@ -1,6 +1,6 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using MyProject;
+using I8080Translator;
 using SomeAsmTranslator.Source.Listing;
 using SomeAsmTranslator.Source.Listing.ListingWriters.Interfaces;
 

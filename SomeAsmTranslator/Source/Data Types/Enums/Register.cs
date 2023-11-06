@@ -1,7 +1,13 @@
-﻿namespace MyProject;
+﻿namespace I8080Translator;
 
 public enum Register
 {
-    // 000 001 010 011 100 101 110 111
-    B, C, D, E, H, L, M, A
+    B = 0b000, 
+    C = 0b001, 
+    D = 0b010, 
+    E = 0b011, 
+    H = 0b100, 
+    L = 0b101, 
+    M = 0b110, 
+    A = 0b111
 }

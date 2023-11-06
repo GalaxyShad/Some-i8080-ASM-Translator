@@ -2,7 +2,7 @@
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 
-namespace MyProject;
+namespace I8080Translator;
 
 public class WordDocumentGenerator
 {

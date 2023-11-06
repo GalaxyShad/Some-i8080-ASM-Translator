@@ -2,7 +2,7 @@
 using SomeAsmTranslator.Source.Listing.ListingWriters.Interfaces;
 using SomeAsmTranslator.Source.Listing.ListingWriters.Writers;
 
-namespace MyProject;
+namespace I8080Translator;
 
 partial class Program
 {

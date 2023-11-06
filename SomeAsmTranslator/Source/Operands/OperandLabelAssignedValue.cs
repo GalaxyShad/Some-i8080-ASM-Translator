@@ -1,6 +1,6 @@
 ﻿using SomeAsmTranslator.Source;
 
-namespace MyProject;
+namespace I8080Translator;
 
 class OperandLabelAssignedValue : IOperand
 {

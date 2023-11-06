@@ -1,6 +1,6 @@
 ﻿using SomeAsmTranslator.Operands;
 
-namespace MyProject;
+namespace I8080Translator;
 
 public class AssemblyStatement
 {
