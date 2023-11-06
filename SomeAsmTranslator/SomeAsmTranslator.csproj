@@ -6,9 +6,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>i8080</AssemblyName>
+    <RepositoryUrl>https://github.com/GalaxyShad/Some-i8080-ASM-Translator</RepositoryUrl>
+    <Authors>GalaxyShad</Authors>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.19.0" />
   </ItemGroup>
 

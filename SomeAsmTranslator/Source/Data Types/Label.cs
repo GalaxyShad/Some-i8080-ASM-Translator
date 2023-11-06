@@ -1,6 +1,6 @@
 ﻿namespace MyProject;
 
-class Label
+public class Label
 {
     public string Name { get; }
     public ushort Value { 

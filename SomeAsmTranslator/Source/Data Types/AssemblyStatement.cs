@@ -2,7 +2,7 @@
 
 namespace MyProject;
 
-class AssemblyStatement
+public class AssemblyStatement
 {
     public Label? Label { get; private set; }
     public string? Instruction { get; private set; }

@@ -1,6 +1,6 @@
 ﻿namespace MyProject;
 
-interface IOperand
+public interface IOperand
 {
     Register ToRegister();
     RegisterPair ToRegisterPair();

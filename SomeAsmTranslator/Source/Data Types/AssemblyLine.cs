@@ -1,6 +1,6 @@
 ﻿namespace MyProject;
 
-class AssemblyLine
+public class AssemblyLine
 {
     public int? Address { get; set; } = null;
     public AssemblyStatement AssemblyStatement { get; set; }

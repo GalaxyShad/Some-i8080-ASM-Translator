@@ -2,7 +2,7 @@
 
 namespace SomeAsmTranslator.Operands;
 
-interface IOperandMultiple
+public interface IOperandMultiple
 {
     public int Count { get; }
 
