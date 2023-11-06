@@ -9,18 +9,20 @@ class Lexer
         .Concat(Preproccesor.GetPseudoInstructrions())
         .ToArray();
 
-    private string _sourceCode;
+    private readonly TextReader _sourceCodeReader;
+    private int _currentChar;
 
-    private int _pos = 0;
+    public Lexer(string sourceCode) : this(new StringReader(sourceCode)) { }
 
-    private char CurrentChar => _pos < _sourceCode.Length ? _sourceCode[_pos] : '\0';
-
-    private void NextChar() => _pos++;
-
-    public Lexer(string sourceCode)
+    public Lexer(TextReader sourceCodeReader)
     {
-        _sourceCode = sourceCode.ToUpper();
+        _sourceCodeReader = sourceCodeReader;
+        _currentChar = NextChar();
     }
+
+    private char CurrentChar => _currentChar != -1 ? char.ToUpper((char)_currentChar) : '\0';
+
+    private int NextChar() => _currentChar = _sourceCodeReader.Read();
 
     private void PassWhiteSpaces()
     {
@@ -152,7 +154,7 @@ class Lexer
             var c when IsCharLetterOrSpecialSym(c) => ProcLabelAndSymbols(),
             var c when char.IsNumber(c) => ProcNumbers(),
 
-            _ => new Token { TokenType = TokenType.Unknown, Value = string.Empty },
+            _ => throw new Exception($"sdad {(int)CurrentChar} {CurrentChar}"),
         };
     }
 
