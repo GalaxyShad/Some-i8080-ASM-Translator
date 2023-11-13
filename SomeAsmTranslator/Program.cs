@@ -33,7 +33,8 @@ partial class Program
             var listingWriterFactory = new AssemblerListingWriterFactory(listing, assemblerLines);
             var listingWritersList = listingWriterFactory.Get(opts);
 
-            var inputFileWihoutExt = GetDirectoryPathWithoutExtension(opts.InputFilePath);
+            var inFilePath = Path.GetFullPath(opts.InputFilePath);
+            var inputFileWihoutExt = GetDirectoryPathWithoutExtension(inFilePath);
             var outFilePath = $"{inputFileWihoutExt}.i8080asm";
 
             foreach (IAssemblerFileWriter listingWriter in listingWritersList)
@@ -47,11 +48,11 @@ partial class Program
                 listingWriter.WriteToFile(outFilePath);
             }
 
-            Console.WriteLine("\nSuccessfull");
+            Console.WriteLine($"\nSuccessfull");
         } 
         catch (Exception ex)
         {
-
+            Console.WriteLine(ex.Message);
         }
         
     }
@@ -73,8 +74,7 @@ partial class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[ERR] [ASM] [{ex.GetType()}] {ex.Message}");
-            throw;
+            throw new Exception($"[ERR] [ASM] [{ex.GetType()}] {ex.Message}");
         }
     }
 
@@ -87,8 +87,7 @@ partial class Program
         }
         catch (Exception err)
         {
-            Console.WriteLine($"[ERR] [IO] {err.Message}");
-            throw;
+            throw new Exception($"[ERR] [IO] {err.Message}");
         }
     }
 }
