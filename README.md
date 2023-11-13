@@ -1,8 +1,14 @@
-# Some-i8080-ASM-Translator
-<p align="center">
-  <img src="https://github.com/GalaxyShad/Some-i8080-ASM-Translator/assets/52833080/2b692322-90f3-4f74-b8f6-969fd142fac9" /><br/>
-</p>
-Транслятор ассемблера КР580ВМ80А / Intel 8080A в машинный код, с возможностью генерации листинга в разных форматах.
+<div align="center">
+  <p align="center">
+      <h1 align="center" style="color:red;">Some-i8080-ASM-Translator</h1>
+      <img src="https://github.com/GalaxyShad/Some-i8080-ASM-Translator/assets/52833080/2b692322-90f3-4f74-b8f6-969fd142fac9" /><br/>
+      Транслятор ассемблера КР580ВМ80А / Intel 8080A в машинный код, с возможностью генерации листинга в разных форматах.
+  </p>
+</div>
+
+## Ссылка на скачивание
+Скачать последнюю версию транслятора можно [здесь](https://github.com/GalaxyShad/Some-i8080-ASM-Translator/releases).
+
 
 ## Как пользоваться
 Для вывода справки вызовите:
