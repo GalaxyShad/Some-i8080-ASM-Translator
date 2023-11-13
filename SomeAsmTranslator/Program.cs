@@ -15,37 +15,45 @@ partial class Program
     static void Main(string[] args)
     {
         var parser = new CommandLine.Parser();
-
+        
         CommandLine.Parser.Default.ParseArguments<ArgumentsOptions>(args)
               .WithParsed(RunOptions)
               .WithNotParsed(HandleParseError);
-
-        Console.WriteLine("\nSuccessfull");
     }
 
     static void RunOptions(ArgumentsOptions opts)
     {
-        string sourceCode = ReadSourceCodeFromFile(opts.InputFilePath);
-
-        var assemblerLines = Assemble(sourceCode);
-        var listing = _listingGenerator.Generate(assemblerLines);
-
-        var listingWriterFactory = new AssemblerListingWriterFactory(listing, assemblerLines);
-        var listingWritersList = listingWriterFactory.Get(opts);
-
-        var inputFileWihoutExt = GetDirectoryPathWithoutExtension(opts.InputFilePath);
-        var outFilePath = $"{inputFileWihoutExt}.i8080asm";
-
-        foreach (IAssemblerFileWriter listingWriter in listingWritersList)
+        try
         {
-            if (listingWriter is AssemblerListingWriterText consoleWriter)
+            string sourceCode = ReadSourceCodeFromFile(opts.InputFilePath);
+
+            var assemblerLines = Assemble(sourceCode);
+            var listing = _listingGenerator.Generate(assemblerLines);
+
+            var listingWriterFactory = new AssemblerListingWriterFactory(listing, assemblerLines);
+            var listingWritersList = listingWriterFactory.Get(opts);
+
+            var inputFileWihoutExt = GetDirectoryPathWithoutExtension(opts.InputFilePath);
+            var outFilePath = $"{inputFileWihoutExt}.i8080asm";
+
+            foreach (IAssemblerFileWriter listingWriter in listingWritersList)
             {
-                if (consoleWriter.FileExtension == AssemblerListingWriterText.Extension.Txt)
-                    consoleWriter.WriteToConsole();
+                if (listingWriter is AssemblerListingWriterText consoleWriter)
+                {
+                    if (consoleWriter.FileExtension == AssemblerListingWriterText.Extension.Txt)
+                        consoleWriter.WriteToConsole();
+                }
+
+                listingWriter.WriteToFile(outFilePath);
             }
 
-            listingWriter.WriteToFile(outFilePath);
+            Console.WriteLine("\nSuccessfull");
+        } 
+        catch (Exception ex)
+        {
+
         }
+        
     }
     static void HandleParseError(IEnumerable<Error> errs)
     {
