@@ -27,6 +27,8 @@ partial class Program
         {
             string sourceCode = ReadSourceCodeFromFile(opts.InputFilePath);
 
+            _listingGenerator.IsMachineCodeLineSeperation = !opts.IsKeepAllInstructionBytesOnSameLine;
+
             var assemblerLines = Assemble(sourceCode);
             var listing = _listingGenerator.Generate(assemblerLines);
 
