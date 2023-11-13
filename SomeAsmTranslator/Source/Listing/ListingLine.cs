@@ -15,7 +15,7 @@ public class ListingLine
                $"{MachineCode.PadLeft(parameters.MachineCodeColumnWidth)} | " +
                $"{Label.PadRight(parameters.LabelColumnWidth)} | " +
                $"{AsmCode.PadRight(parameters.AsmCodeColumnWidth)} {parameters.CommentDividerChar} " +
-               $"{Comment.PadLeft(parameters.CommentColumnWidth)}";
+               $"{Comment}";
     }
 
 }
