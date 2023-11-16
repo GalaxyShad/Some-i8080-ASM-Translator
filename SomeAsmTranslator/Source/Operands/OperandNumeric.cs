@@ -7,7 +7,7 @@ class OperandNumeric : IOperand
 {
     private int _value;
 
-    private string _valueString;
+    private readonly string _valueString;
 
     private void Parse(string value)
     {

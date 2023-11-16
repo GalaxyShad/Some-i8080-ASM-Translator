@@ -56,7 +56,6 @@ partial class Program
         {
             Console.WriteLine(ex.Message);
         }
-        
     }
     static void HandleParseError(IEnumerable<Error> errs)
     {
@@ -74,9 +73,28 @@ partial class Program
         {
             return _assembler.AssembleAll(sourceCode);
         }
+        catch (TranslatorLexerException ex)
+        {
+            throw new Exception(
+                $"[ERR] [LEXER] {ex.GetType()}\n" +
+                $"Error at line {ex.ErrorLine}\n" +
+                $"      {ex.Message}"
+            );
+        }
+        catch (TranslatorParserException ex)
+        {
+            throw new Exception(
+                $"[ERR] [PARSER] {ex.GetType()}\n" +
+                $"Error at line {ex.ErrorLine}\n" +
+                $"      {ex.Message}"
+            );
+        }
         catch (Exception ex)
         {
-            throw new Exception($"[ERR] [ASM] [{ex.GetType()}] {ex.Message}");
+            throw new Exception(
+                $"[ERR] [Unexpected error] [{ex.GetType()}] Send a bug report to the developer.\n" +
+                $"{ex.Message}\n"
+            );
         }
     }
 

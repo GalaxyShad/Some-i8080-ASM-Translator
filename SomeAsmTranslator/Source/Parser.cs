@@ -49,7 +49,10 @@ class Parser
             if (token.TokenType == TokenType.Label)
             {
                 if (_labelList.ContainsKey(token.Value))
-                    throw new InvalidDataException($"Double Label {token.Value}");
+                    throw new TranslatorParserException(
+                        $"Double Label {token.Value}",
+                        token.Line
+                    );
 
                 _labelList.Add(token.Value, new Label(token.Value));
             }
@@ -91,39 +94,46 @@ class Parser
 
     private IOperand? ParseOperand()
     {
-        IOperand operand;
-
-        switch (TokenAt().TokenType)
+        try
         {
-            case TokenType.ProgramCounterData:
-                operand = new OperandProgramCounter();
-                break;
-            case TokenType.Number:
-                operand = new OperandNumeric(TokenAt().Value);
-                break;
-            case TokenType.String:
-                throw new NotImplementedException("Strings are not implemented yet");
-            case TokenType.Symbol:
-                if (_labelList.ContainsKey(TokenAt().Value))
-                    operand = new OperandLabel(_labelList[TokenAt().Value]);
+            IOperand operand;
 
-                else if (_setList.ContainsKey(TokenAt().Value))
-                    operand = new OperandLabelAssignedValue(_setList[TokenAt().Value]);
+            switch (TokenAt().TokenType)
+            {
+                case TokenType.ProgramCounterData:
+                    operand = new OperandProgramCounter();
+                    break;
+                case TokenType.Number:
+                    operand = new OperandNumeric(TokenAt().Value);
+                    break;
+                case TokenType.String:
+                    throw new NotImplementedException("Strings are not implemented yet");
+                case TokenType.Symbol:
+                    if (_labelList.ContainsKey(TokenAt().Value))
+                        operand = new OperandLabel(_labelList[TokenAt().Value]);
 
-                else if (TokenAt().Value is "SP" or "PSW")
-                    operand = new OperandLabelAssignedValue(new Label(TokenAt().Value));
+                    else if (_setList.ContainsKey(TokenAt().Value))
+                        operand = new OperandLabelAssignedValue(_setList[TokenAt().Value]);
 
-                else
-                    throw new InvalidDataException($"Unexisting label {TokenAt().Value}");
+                    else if (TokenAt().Value is "SP" or "PSW")
+                        operand = new OperandLabelAssignedValue(new Label(TokenAt().Value));
 
-                break;
-            default:
-                return null;
+                    else
+                        throw new Exception($"Unexisting label {TokenAt().Value}");
+
+                    break;
+                default:
+                    return null;
+            }
+
+            TokenEat();
+
+            return operand;
+        } 
+        catch (Exception e)
+        {
+            throw new TranslatorParserException(e.Message, TokenAt().Line);
         }
-
-        TokenEat();
-
-        return operand;
     }
 
     private Label? ParseLabel() =>

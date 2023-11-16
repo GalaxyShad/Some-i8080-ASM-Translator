@@ -10,6 +10,7 @@ class Lexer
         .ToArray();
 
     private readonly TextReader _sourceCodeReader;
+
     private int _currentChar;
     private long _lineCounter = 1;
 
@@ -47,7 +48,10 @@ class Lexer
         if (_instructionTable.Contains(value))
         {
             if (CurrentChar == ':')
-                throw new Exception($"Label cannot be named by existing instruction name \"{value}\"");
+                throw new TranslatorLexerException(
+                    $"Label cannot be named by existing instruction name \"{value}\"",
+                    _lineCounter
+                );
 
             return new Token { TokenType = TokenType.Instruction, Value = value, Line = _lineCounter };
         }
@@ -104,7 +108,7 @@ class Lexer
             NextChar();
 
             if (CurrentChar == '\0')
-                throw new Exception("No end quote found");
+                throw new TranslatorLexerException("No end quote found", _lineCounter);
         }
 
         NextChar();
@@ -157,9 +161,13 @@ class Lexer
             var c when IsCharLetterOrSpecialSym(c) => ProcLabelAndSymbols(),
             var c when char.IsNumber(c) => ProcNumbers(),
 
-            _ => throw new Exception($"Unknown token {(int)CurrentChar} {CurrentChar} at line {_lineCounter}"),
+            _ => throw new TranslatorLexerException(
+                    $"Unknown token {(int)CurrentChar} {CurrentChar}",
+                    _lineCounter
+                 ),
         };
     }
 
-    private bool IsCharLetterOrSpecialSym(char c) => c >= 'A' && c <= 'Z' || c == '?' || c == '@' || c == '_';
+    private bool IsCharLetterOrSpecialSym(char c) =>
+        c >= 'A' && c <= 'Z' || c == '?' || c == '@' || c == '_';
 }
