@@ -19,11 +19,11 @@ public class ListingLineFormatParameters
         return new ListingLineFormatParameters
         {
             MachineCodeColumnWidth = Math.Max(
-                MIN_MACHINE_CODE_COLUMN_WIDTH, 
+                MIN_MACHINE_CODE_COLUMN_WIDTH,
                 listing.Max(x => x.MachineCode.Length)),
 
             LabelColumnWidth = Math.Max(
-                MIN_LABEL_COLUMN_WIDTH, 
+                MIN_LABEL_COLUMN_WIDTH,
                 listing.Max(x => x.Label.Length)),
 
             AsmCodeColumnWidth = listing.Max(y => y.AsmCode.Length),

@@ -9,13 +9,13 @@ namespace I8080Translator;
 
 partial class Program
 {
-    static private readonly Assembler _assembler = new ();
-    static private readonly ListingGenerator _listingGenerator = new ();
+    static private readonly Assembler _assembler = new();
+    static private readonly ListingGenerator _listingGenerator = new();
 
     static void Main(string[] args)
     {
         var parser = new CommandLine.Parser();
-        
+
         CommandLine.Parser.Default.ParseArguments<ArgumentsOptions>(args)
               .WithParsed(RunOptions)
               .WithNotParsed(HandleParseError);
@@ -51,7 +51,7 @@ partial class Program
             }
 
             Console.WriteLine($"\nSuccessfull");
-        } 
+        }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
@@ -62,7 +62,7 @@ partial class Program
         //handle errors
     }
 
-    static string GetDirectoryPathWithoutExtension(string path) => 
+    static string GetDirectoryPathWithoutExtension(string path) =>
         $"{Path.GetDirectoryName(path)}" +
         $"{Path.DirectorySeparatorChar}" +
         $"{Path.GetFileNameWithoutExtension(path)}";

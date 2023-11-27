@@ -1,7 +1,7 @@
 ﻿namespace I8080Translator;
 
-public enum TokenType 
-{ 
+public enum TokenType
+{
     Unknown,
     Label,
     Symbol,             // OP, Pseudo OP, Symbol for SET or EQU, Label

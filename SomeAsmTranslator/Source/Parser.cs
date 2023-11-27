@@ -1,6 +1,5 @@
 ﻿using I8080Translator;
 using SomeAsmTranslator.Operands;
-using System.Reflection;
 
 namespace SomeAsmTranslator.Source;
 
@@ -27,10 +26,10 @@ class Parser
         PreScan(source);
     }
 
-    private Token TokenAt() => 
+    private Token TokenAt() =>
         _tokenQueue.Count != 0 ? _tokenQueue.Peek() : Token.EOF;
 
-    private Token TokenEat() => 
+    private Token TokenEat() =>
         _tokenQueue.Count != 0 ? _tokenQueue.Dequeue() : Token.EOF;
 
     private void PreScan(string source)
@@ -49,10 +48,7 @@ class Parser
             if (token.TokenType == TokenType.Label)
             {
                 if (_labelList.ContainsKey(token.Value))
-                    throw new TranslatorParserException(
-                        $"Double Label {token.Value}",
-                        token.Line
-                    );
+                    throw new InvalidDataException($"Double Label {token.Value}");
 
                 _labelList.Add(token.Value, new Label(token.Value));
             }
@@ -94,46 +90,39 @@ class Parser
 
     private IOperand? ParseOperand()
     {
-        try
+        IOperand operand;
+
+        switch (TokenAt().TokenType)
         {
-            IOperand operand;
+            case TokenType.ProgramCounterData:
+                operand = new OperandProgramCounter();
+                break;
+            case TokenType.Number:
+                operand = new OperandNumeric(TokenAt().Value);
+                break;
+            case TokenType.String:
+                throw new NotImplementedException("Strings are not implemented yet");
+            case TokenType.Symbol:
+                if (_labelList.ContainsKey(TokenAt().Value))
+                    operand = new OperandLabel(_labelList[TokenAt().Value]);
 
-            switch (TokenAt().TokenType)
-            {
-                case TokenType.ProgramCounterData:
-                    operand = new OperandProgramCounter();
-                    break;
-                case TokenType.Number:
-                    operand = new OperandNumeric(TokenAt().Value);
-                    break;
-                case TokenType.String:
-                    throw new NotImplementedException("Strings are not implemented yet");
-                case TokenType.Symbol:
-                    if (_labelList.ContainsKey(TokenAt().Value))
-                        operand = new OperandLabel(_labelList[TokenAt().Value]);
+                else if (_setList.ContainsKey(TokenAt().Value))
+                    operand = new OperandLabelAssignedValue(_setList[TokenAt().Value]);
 
-                    else if (_setList.ContainsKey(TokenAt().Value))
-                        operand = new OperandLabelAssignedValue(_setList[TokenAt().Value]);
+                else if (TokenAt().Value is "SP" or "PSW")
+                    operand = new OperandLabelAssignedValue(new Label(TokenAt().Value));
 
-                    else if (TokenAt().Value is "SP" or "PSW")
-                        operand = new OperandLabelAssignedValue(new Label(TokenAt().Value));
+                else
+                    throw new InvalidDataException($"Unexisting label {TokenAt().Value}");
 
-                    else
-                        throw new Exception($"Unexisting label {TokenAt().Value}");
-
-                    break;
-                default:
-                    return null;
-            }
-
-            TokenEat();
-
-            return operand;
-        } 
-        catch (Exception e)
-        {
-            throw new TranslatorParserException(e.Message, TokenAt().Line);
+                break;
+            default:
+                return null;
         }
+
+        TokenEat();
+
+        return operand;
     }
 
     private Label? ParseLabel() =>

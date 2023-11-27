@@ -3,9 +3,10 @@
 public class Label
 {
     public string Name { get; }
-    public ushort Value { 
-        get => _value != null ? (ushort)_value : throw new ArgumentNullException($"Label {Name} value is not assigned"); 
-        set => _value = value; 
+    public ushort Value
+    {
+        get => _value != null ? (ushort)_value : throw new ArgumentNullException($"Label {Name} value is not assigned");
+        set => _value = value;
     }
 
     private ushort? _value = null;
@@ -15,6 +16,4 @@ public class Label
         Name = name;
         _value = value;
     }
-
-
 }

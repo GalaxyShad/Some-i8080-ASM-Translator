@@ -1,6 +1,4 @@
-﻿using System.Collections.Specialized;
-using System.Runtime.CompilerServices;
-using I8080Translator;
+﻿using I8080Translator;
 
 namespace SomeAsmTranslator.Source;
 

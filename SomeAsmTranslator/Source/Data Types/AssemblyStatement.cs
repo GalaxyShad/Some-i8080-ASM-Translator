@@ -19,7 +19,7 @@ public class AssemblyStatement
         Comment = comment;
     }
 
-    public bool IsEmpty() => 
+    public bool IsEmpty() =>
         Label == null && Instruction == null && OperandList.Count == 0 && Comment == null;
 
     public override string ToString() =>

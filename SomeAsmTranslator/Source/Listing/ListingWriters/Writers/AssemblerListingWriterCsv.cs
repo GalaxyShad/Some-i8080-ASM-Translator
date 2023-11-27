@@ -1,5 +1,4 @@
-﻿using SomeAsmTranslator.Source.Listing;
-using SomeAsmTranslator.Source.Listing.ListingWriters.Interfaces;
+﻿using SomeAsmTranslator.Source.Listing.ListingWriters.Interfaces;
 
 namespace SomeAsmTranslator.Source.Listing.ListingWriters.Writers;
 

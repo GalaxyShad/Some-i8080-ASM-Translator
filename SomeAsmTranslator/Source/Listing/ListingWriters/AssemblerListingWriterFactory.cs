@@ -12,7 +12,7 @@ partial class Program
         private readonly IEnumerable<AssemblyLine> _assemblyLineList;
 
         public AssemblerListingWriterFactory(
-            IEnumerable<ListingLine> listing, 
+            IEnumerable<ListingLine> listing,
             IEnumerable<AssemblyLine> assemblyLineList)
         {
             _listing = listing;

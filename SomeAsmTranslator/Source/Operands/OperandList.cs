@@ -8,7 +8,7 @@ class OperandList : IOperandMultiple
 
     public IEnumerable<IOperand> Operands => _operands;
 
-    private List<IOperand> _operands = new ();
+    private List<IOperand> _operands = new();
 
     public IOperand First => _operands.First();
 

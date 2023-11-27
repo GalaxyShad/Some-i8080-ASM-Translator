@@ -1,8 +1,6 @@
-using System;
-
 namespace SomeAsmTranslator.Source;
 
-public class TranslatorExceptionBase : Exception 
+public class TranslatorExceptionBase : Exception
 {
     public long ErrorLine { get; private set; }
 
@@ -11,12 +9,12 @@ public class TranslatorExceptionBase : Exception
         ErrorLine = errorLine;
     }
 
-    public TranslatorExceptionBase(string message, long errorLine): base(message) 
+    public TranslatorExceptionBase(string message, long errorLine) : base(message)
     {
         ErrorLine = errorLine;
     }
 
-    public TranslatorExceptionBase(string message, Exception inner, long errorLine): base(message, inner) 
+    public TranslatorExceptionBase(string message, Exception inner, long errorLine) : base(message, inner)
     {
         ErrorLine = errorLine;
     }
@@ -24,7 +22,7 @@ public class TranslatorExceptionBase : Exception
 
 public class TranslatorLexerException : TranslatorExceptionBase
 {
-    public TranslatorLexerException(long errorLine): base(errorLine) { }
+    public TranslatorLexerException(long errorLine) : base(errorLine) { }
 
     public TranslatorLexerException(string message, long errorLine) : base(message, errorLine) { }
 
