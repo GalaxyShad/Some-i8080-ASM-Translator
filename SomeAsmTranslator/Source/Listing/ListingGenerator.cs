@@ -13,13 +13,14 @@ public class ListingGenerator
 
         foreach (var asmLine in assemblyLines)
         {
-            var asmStatement = asmLine.AssemblyStatement;
+            var asmStatement = asmLine.AssembledAssemblyStatement.AssemblyStatement;
+            var bytes = asmLine.AssembledAssemblyStatement.MachineCode;
 
             listing.Add(new ListingLine()
             {
                 Address = $"{asmLine.Address:X4}",
                 Label = FormatLabel(asmStatement.Label),
-                MachineCode = IsMachineCodeLineSeperation ? $"{asmLine.Bytes?[0]:X2}" : FormatMachineCode(asmLine.Bytes),
+                MachineCode = IsMachineCodeLineSeperation ? $"{bytes?[0]:X2}" : FormatMachineCode(bytes),
                 AsmCode = FormatInstruction(asmStatement.Instruction, asmStatement.OperandList),
                 Comment = asmStatement.Comment ?? string.Empty,
             });
@@ -27,12 +28,12 @@ public class ListingGenerator
             if (!IsMachineCodeLineSeperation)
                 continue;
 
-            for (int i = 1; i < asmLine.Bytes?.Length; i++)
+            for (int i = 1; i < bytes?.Length; i++)
             {
                 listing.Add(new ListingLine()
                 {
                     Address = $"{asmLine.Address + i:X4}",
-                    MachineCode = $"{asmLine.Bytes?[i]:X2}"
+                    MachineCode = $"{bytes?[i]:X2}"
                 });
             }
         }

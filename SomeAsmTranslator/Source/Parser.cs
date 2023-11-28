@@ -5,67 +5,45 @@ namespace SomeAsmTranslator.Source;
 
 class Parser
 {
-    private readonly Dictionary<string, Label> _labelList = new();
+    private readonly LabelTable _labelTable;
+    private readonly Lexer _lexer;
 
-    private readonly Dictionary<string, Label> _setList = new()
+    public Parser(Lexer lexer, LabelTable labelTable)
     {
-        { "B", new Label("B", 0) },
-        { "C", new Label("C", 1) },
-        { "D", new Label("D", 2) },
-        { "E", new Label("E", 3) },
-        { "H", new Label("H", 4) },
-        { "L", new Label("L", 5) },
-        { "M", new Label("M", 6) },
-        { "A", new Label("A", 7) },
-    };
-
-    private readonly Queue<Token> _tokenQueue = new();
-
-    public Parser(string source)
-    {
-        PreScan(source);
-    }
-
-    private Token TokenAt() =>
-        _tokenQueue.Count != 0 ? _tokenQueue.Peek() : Token.EOF;
-
-    private Token TokenEat() =>
-        _tokenQueue.Count != 0 ? _tokenQueue.Dequeue() : Token.EOF;
-
-    private void PreScan(string source)
-    {
-        var tokenizer = new Lexer(source);
-
-        var token = tokenizer.Next();
-        while (token.TokenType != TokenType.EOF)
-        {
-            if (token.TokenType == TokenType.NewLine)
-            {
-                token = tokenizer.Next();
-                continue;
-            }
-
-            if (token.TokenType == TokenType.Label)
-            {
-                if (_labelList.ContainsKey(token.Value))
-                    throw new InvalidDataException($"Double Label {token.Value}");
-
-                _labelList.Add(token.Value, new Label(token.Value));
-            }
-
-            _tokenQueue.Enqueue(token);
-            token = tokenizer.Next();
-        }
+        _labelTable = labelTable;
+        _lexer = lexer;
+        _currentToken = _lexer.Next();
     }
 
     public AssemblyStatement Next()
     {
-        return new AssemblyStatement(
-            ParseLabel(),
-            ParseInstruction(),
-            ParseOperands(),
-            ParseComment()
-        );
+        var label = ParseLabel();
+        var instruction = ParseInstruction();
+        var operands = ParseOperands();
+        var comments = ParseComment();
+
+        return new(label, instruction, operands, comments);
+    }
+
+    private Token _currentToken = Token.EOF;
+      
+    private Token TokenAt() => _currentToken;
+
+    private Token TokenEat()
+    {
+        var prev = new Token 
+        {
+            Line = _currentToken.Line,
+            TokenType = _currentToken.TokenType,
+            Value = _currentToken.Value
+        };
+
+        _currentToken = _lexer.Next();
+
+        while (_currentToken.TokenType == TokenType.NewLine)
+            _currentToken = _lexer.Next();
+
+        return prev;
     }
 
     private OperandList ParseOperands()
@@ -101,20 +79,9 @@ class Parser
                 operand = new OperandNumeric(TokenAt().Value);
                 break;
             case TokenType.String:
-                throw new NotImplementedException("Strings are not implemented yet");
+                throw new NotImplementedException($"Strings are not implemented yet -> {TokenAt().Value}");
             case TokenType.Symbol:
-                if (_labelList.ContainsKey(TokenAt().Value))
-                    operand = new OperandLabel(_labelList[TokenAt().Value]);
-
-                else if (_setList.ContainsKey(TokenAt().Value))
-                    operand = new OperandLabelAssignedValue(_setList[TokenAt().Value]);
-
-                else if (TokenAt().Value is "SP" or "PSW")
-                    operand = new OperandLabelAssignedValue(new Label(TokenAt().Value));
-
-                else
-                    throw new InvalidDataException($"Unexisting label {TokenAt().Value}");
-
+                operand = new OperandLabel(_labelTable.AddOrUpdateLabel(new Label { Name = TokenAt().Value }));
                 break;
             default:
                 return null;
@@ -126,12 +93,13 @@ class Parser
     }
 
     private Label? ParseLabel() =>
-        TokenAt().TokenType is TokenType.Label ? _labelList[TokenEat().Value] : null;
+        TokenAt().TokenType is TokenType.Label 
+            ? _labelTable.AddOrUpdateLabel(new Label { Name = TokenEat().Value }) 
+            : null;
 
     private string? ParseInstruction() =>
         TokenAt().TokenType is TokenType.Instruction ? TokenEat().Value : null;
 
     private string? ParseComment() =>
         TokenAt().TokenType is TokenType.Comment ? TokenEat().Value : null;
-
 }

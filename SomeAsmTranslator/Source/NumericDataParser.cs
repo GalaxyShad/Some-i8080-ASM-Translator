@@ -13,7 +13,7 @@ class NumericDataParser
     private bool IsValidBinary(string bin) =>
         Regex.IsMatch(bin, "^[01]+B$");
 
-    private string RemoveUnderscores(string source)
+    private static string RemoveUnderscores(string source)
     {
         char last = source.Last();
 
@@ -27,7 +27,7 @@ class NumericDataParser
     }
 
 
-    private string NormalizeString(string str) => RemoveUnderscores(str.Trim().ToUpper());
+    private static string NormalizeString(string str) => RemoveUnderscores(str.Trim().ToUpper());
 
     public int ParseHexadecimal(string source)
     {
@@ -69,8 +69,7 @@ class NumericDataParser
         return Convert.ToInt32(source[..^1], 2);
     }
 
-    public byte ParseAscii(char ascii) => (byte)ascii;
-
+    public static byte ParseAscii(char asciiChar) => (byte)asciiChar;
 
     public static ushort SwapBytes(ushort x) => (ushort)(x >> 8 | x << 8);
 }

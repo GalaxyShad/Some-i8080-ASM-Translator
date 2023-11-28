@@ -9,7 +9,6 @@ namespace I8080Translator;
 
 partial class Program
 {
-    static private readonly Assembler _assembler = new();
     static private readonly ListingGenerator _listingGenerator = new();
 
     static void Main(string[] args)
@@ -71,7 +70,8 @@ partial class Program
     {
         try
         {
-            return _assembler.AssembleAll(sourceCode);
+            var asm = new Assembler(sourceCode);
+            return asm.AssembleAll().ToList();
         }
         catch (TranslatorLexerException ex)
         {

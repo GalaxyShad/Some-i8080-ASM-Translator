@@ -6,7 +6,7 @@ class Lexer
 {
     private readonly string[] _instructionTable =
         InstructionTranslator.GetInstructionNames()
-        .Concat(Preproccesor.GetPseudoInstructrions())
+        .Concat(Assembler.GetPseudoInstructrions())
         .ToArray();
 
     private readonly TextReader _sourceCodeReader;
@@ -20,6 +20,29 @@ class Lexer
     {
         _sourceCodeReader = sourceCodeReader;
         _currentChar = NextChar();
+    }
+
+    public Token Next()
+    {
+        PassWhiteSpaces();
+
+        return CurrentChar switch
+        {
+            '\0' => Token.EOF,
+            '\n' => ProcNewLine(),
+            '\'' => ProcString(),
+            ';' => ProcComment(),
+            ',' => ProcComma(),
+            '$' => ProcProgramCounterData(),
+
+            var c when IsCharLetterOrSpecialSym(c) => ProcLabelAndSymbols(),
+            var c when char.IsNumber(c) => ProcNumbers(),
+
+            _ => throw new TranslatorLexerException(
+                    $"Unknown token {(int)CurrentChar} {CurrentChar}",
+                    _lineCounter
+                 ),
+        };
     }
 
     private char CurrentChar => _currentChar != -1 ? char.ToUpper((char)_currentChar) : '\0';
@@ -145,29 +168,6 @@ class Lexer
         return Token.NewLine;
     }
 
-    public Token Next()
-    {
-        PassWhiteSpaces();
-
-        return CurrentChar switch
-        {
-            '\0' => Token.EOF,
-            '\n' => ProcNewLine(),
-            '\'' => ProcString(),
-            ';' => ProcComment(),
-            ',' => ProcComma(),
-            '$' => ProcProgramCounterData(),
-
-            var c when IsCharLetterOrSpecialSym(c) => ProcLabelAndSymbols(),
-            var c when char.IsNumber(c) => ProcNumbers(),
-
-            _ => throw new TranslatorLexerException(
-                    $"Unknown token {(int)CurrentChar} {CurrentChar}",
-                    _lineCounter
-                 ),
-        };
-    }
-
-    private bool IsCharLetterOrSpecialSym(char c) =>
+    private static bool IsCharLetterOrSpecialSym(char c) =>
         c >= 'A' && c <= 'Z' || c == '?' || c == '@' || c == '_';
 }

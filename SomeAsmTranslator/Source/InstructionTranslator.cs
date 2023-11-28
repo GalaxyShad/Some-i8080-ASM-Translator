@@ -3,7 +3,7 @@
 namespace SomeAsmTranslator.Source;
 
 
-class InstructionTranslator
+public class InstructionTranslator
 {
 
     // Carry Bit Instructions
@@ -210,9 +210,8 @@ class InstructionTranslator
 
     public static int GetDataDefinitionInstructionByteCount(string name, object[] args)
     {
-        var method = typeof(InstructionTranslator).GetMethod(name);
-        if (method == null)
-            throw new ArgumentException($"Unknown instruction {name}");
+        var method = typeof(InstructionTranslator).GetMethod(name) 
+            ?? throw new ArgumentException($"Unknown instruction {name}");
 
         if (method.Name is not (nameof(DB) or nameof(DW) or nameof(DS)))
             throw new ArgumentException($"Unknown Data Definition instruction {name}");
