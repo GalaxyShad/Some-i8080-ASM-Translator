@@ -24,11 +24,9 @@ partial class Program
     {
         try
         {
-            string sourceCode = ReadSourceCodeFromFile(opts.InputFilePath);
-
             _listingGenerator.IsMachineCodeLineSeperation = !opts.IsKeepAllInstructionBytesOnSameLine;
 
-            var assemblerLines = Assemble(sourceCode);
+            var assemblerLines = Assemble(opts.InputFilePath);
             var listing = _listingGenerator.Generate(assemblerLines);
 
             var listingWriterFactory = new AssemblerListingWriterFactory(listing, assemblerLines);
@@ -66,11 +64,12 @@ partial class Program
         $"{Path.DirectorySeparatorChar}" +
         $"{Path.GetFileNameWithoutExtension(path)}";
 
-    static private IEnumerable<AssemblyLine> Assemble(string sourceCode)
+    static private IEnumerable<AssemblyLine> Assemble(string filepath)
     {
         try
         {
-            var asm = new Assembler(sourceCode);
+            using var streamReader = new StreamReader(filepath);
+            var asm = new Assembler(streamReader);
             return asm.AssembleAll().ToList();
         }
         catch (TranslatorLexerException ex)

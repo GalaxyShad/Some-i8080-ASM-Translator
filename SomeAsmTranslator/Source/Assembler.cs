@@ -45,8 +45,11 @@ class Assembler
 
         while (!statement.IsEmpty())
         {
-            if (statement.Label != null)
+            if (statement.Label != null && statement.Label.Type is LabelType.Address or LabelType.Unknown)
             {
+                if (_labelTable.Has(statement.Label) && statement.Label.Type is LabelType.Address)
+                    throw new InvalidDataException($"Double label {statement.Label.Name}");
+
                 statement.Label.Type = LabelType.Address;
                 statement.Label.Data = (ushort)_pgCounter;
             }
@@ -89,6 +92,9 @@ class Assembler
     {
         if (statement.Label == null)
             throw new InvalidDataException("Name of symbol is missing for EQU");
+
+        if (_labelTable.Has(statement.Label) && statement.Label.Type == LabelType.Equ)
+            throw new InvalidDataException($"EQU {statement.Label.Name} cannot be redefined");
 
         statement.Label.Type = LabelType.Equ;
         statement.Label.Data = statement.OperandList.First.ToImmediateData();
@@ -162,7 +168,9 @@ class Assembler
         foreach (var (First, Second) in instructionParamInfo.Zip(statement.OperandList.Operands))
         {
             if (Second is OperandLabel label && label.LabelType == LabelType.Unknown)
+            {
                 _assembledLinesWithLabels.AddLast(assembled);
+            }
 
             if (First.ParameterType == typeof(byte))
                 instructionArgs.Add(Second.ToImmediateData());

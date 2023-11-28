@@ -15,7 +15,8 @@ public class LabelTable
         { "M", new Label { Name = "M", Data = (ushort)Register.M, Type = LabelType.Set } },
         { "A", new Label { Name = "A", Data = (ushort)Register.A, Type = LabelType.Set } },
     };
-    public void LabelUpdateData(Label label) => _labelList[label.Name].Data = label.Data;
     public Label AddOrUpdateLabel(Label label) =>
         _labelList.ContainsKey(label.Name) ? _labelList[label.Name] : _labelList[label.Name] = label;
+
+    public bool Has(Label label) => _labelList.ContainsKey(label.Name);
 }

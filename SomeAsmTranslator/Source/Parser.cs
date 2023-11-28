@@ -93,8 +93,12 @@ class Parser
     }
 
     private Label? ParseLabel() =>
-        TokenAt().TokenType is TokenType.Label
-            ? _labelTable.AddOrUpdateLabel(new Label { Name = TokenEat().Value })
+        TokenAt().TokenType is TokenType.Label or TokenType.Symbol
+            ? _labelTable.AddOrUpdateLabel(new Label 
+            {
+                IsAddress = TokenAt().TokenType == TokenType.Label,
+                Name = TokenEat().Value, 
+            })
             : null;
 
     private string? ParseInstruction() =>
