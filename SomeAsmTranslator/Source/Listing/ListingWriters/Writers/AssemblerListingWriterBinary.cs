@@ -33,9 +33,13 @@ public class AssemblerListingWriterBinary : IAssemblerFileWriter
                     continue;
                 }
 
-                int dif = (int)(line.Address - (previousLine.Address + prevBytes.Length));
-                for (int i = 0; i < dif; i++)
-                    fs.WriteByte(0);
+                if (line?.Address != null && previousLine?.Address != null && prevBytes != null)
+                {
+                    int dif = (int)(line.Address - (previousLine.Address + prevBytes.Length));
+                    for (int i = 0; i < dif; i++)
+                        fs.WriteByte(0);
+                }
+                
 
                 fs.Write(bytes);
                 previousLine = line;

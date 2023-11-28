@@ -72,7 +72,7 @@ class Assembler
             Address = null,
             AssembledAssemblyStatement = new AssembledAssemblyStatement
             {
-                MachineCode = null,
+                MachineCode = Array.Empty<byte>(),
                 AssemblyStatement = statement
             }
         };
@@ -185,11 +185,11 @@ class Assembler
         if (BitConverter.IsLittleEndian)
             Array.Reverse(bytes);
 
-        // NOP Fix
-        //if (statement.Instruction == "NOP")
-        //    return new byte[] { 0 };
-
         assembled.MachineCode = bytes.SkipWhile(x => x == 0).ToArray();
+
+        //NOP Fix
+        if (statement.Instruction == "NOP")
+            assembled.MachineCode = new byte[] { 0 };
 
         return assembled;
     }
