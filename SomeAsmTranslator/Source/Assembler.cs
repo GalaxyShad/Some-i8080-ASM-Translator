@@ -1,6 +1,4 @@
-﻿using DocumentFormat.OpenXml.Bibliography;
-using I8080Translator;
-using SomeAsmTranslator.Operands;
+﻿using I8080Translator;
 
 namespace SomeAsmTranslator.Source;
 
@@ -114,7 +112,7 @@ class Assembler
     }
 
     private AssembledAssemblyStatement CompileDataInstruction(
-        string instructionName, 
+        string instructionName,
         AssemblyStatement statement)
     {
         return new AssembledAssemblyStatement
@@ -141,7 +139,7 @@ class Assembler
         if (statement.Instruction == null)
             throw new Exception($"AssemblyStatement ${statement} has no instruction");
 
-        var instruction = 
+        var instruction =
             _instructionTranslator.GetType()
                                   .GetMethod(statement.Instruction)
             ?? throw new InvalidDataException($"Unknown instruction {statement.Instruction}");

@@ -26,12 +26,12 @@ class Parser
     }
 
     private Token _currentToken = Token.EOF;
-      
+
     private Token TokenAt() => _currentToken;
 
     private Token TokenEat()
     {
-        var prev = new Token 
+        var prev = new Token
         {
             Line = _currentToken.Line,
             TokenType = _currentToken.TokenType,
@@ -93,8 +93,8 @@ class Parser
     }
 
     private Label? ParseLabel() =>
-        TokenAt().TokenType is TokenType.Label 
-            ? _labelTable.AddOrUpdateLabel(new Label { Name = TokenEat().Value }) 
+        TokenAt().TokenType is TokenType.Label
+            ? _labelTable.AddOrUpdateLabel(new Label { Name = TokenEat().Value })
             : null;
 
     private string? ParseInstruction() =>

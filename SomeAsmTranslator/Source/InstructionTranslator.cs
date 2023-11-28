@@ -210,7 +210,7 @@ public class InstructionTranslator
 
     public static int GetDataDefinitionInstructionByteCount(string name, object[] args)
     {
-        var method = typeof(InstructionTranslator).GetMethod(name) 
+        var method = typeof(InstructionTranslator).GetMethod(name)
             ?? throw new ArgumentException($"Unknown instruction {name}");
 
         if (method.Name is not (nameof(DB) or nameof(DW) or nameof(DS)))

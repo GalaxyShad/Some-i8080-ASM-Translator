@@ -1,8 +1,6 @@
-﻿using System.Linq;
+﻿namespace I8080Translator;
 
-namespace I8080Translator;
-
-public class AssembledAssemblyStatement 
+public class AssembledAssemblyStatement
 {
     public required AssemblyStatement AssemblyStatement { get; set; }
     public required byte[] MachineCode { get; set; }
