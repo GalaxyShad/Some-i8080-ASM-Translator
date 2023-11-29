@@ -56,14 +56,15 @@ class Assembler
 
             if (statement.Instruction != null)
             {
-                if (statement.Instruction == "ORG")
-                    _assembledLines.AddLast(AssembleOrg(statement));
-                else if (statement.Instruction == "EQU")
-                    _assembledLines.AddLast(AssembleEqu(statement));
-                else
-                    _assembledLines.AddLast(AssembleInstruction(statement));
+                _assembledLines.AddLast(statement.Instruction switch
+                {
+                    "ORG" => AssembleOrg(statement),
+                    "EQU" => AssembleEqu(statement),
+                    "SET" => AssembleSet(statement),
+                    _ => AssembleInstruction(statement),
+                });
             }
-
+                
             statement = _parser.Next();
         }
     }
@@ -93,10 +94,29 @@ class Assembler
         if (statement.Label == null)
             throw new InvalidDataException("Name of symbol is missing for EQU");
 
-        if (_labelTable.Has(statement.Label) && statement.Label.Type == LabelType.Equ)
-            throw new InvalidDataException($"EQU {statement.Label.Name} cannot be redefined");
+        if (_labelTable.Has(statement.Label))
+        {
+            if (statement.Label.Type == LabelType.Equ)
+                throw new InvalidDataException($"EQU {statement.Label.Name} cannot be redefined");
+            else if (statement.Label.Type == LabelType.Set)
+                throw new InvalidDataException($"SET {statement.Label.Name} cannot be redefined with EQU");
+        }
 
         statement.Label.Type = LabelType.Equ;
+        statement.Label.Data = statement.OperandList.First.ToImmediateData();
+
+        return MakeAssemblyLineForPseudoInsturction(statement);
+    }
+
+    private AssemblyLine AssembleSet(AssemblyStatement statement)
+    {
+        if (statement.Label == null)
+            throw new InvalidDataException("Name of symbol is missing for SET");
+
+        if (_labelTable.Has(statement.Label) && statement.Label.Type == LabelType.Equ)
+            throw new InvalidDataException($"EQU {statement.Label.Name} cannot be redefined with SET");
+
+        statement.Label.Type = LabelType.Set;
         statement.Label.Data = statement.OperandList.First.ToImmediateData();
 
         return MakeAssemblyLineForPseudoInsturction(statement);
@@ -118,17 +138,26 @@ class Assembler
     }
 
     private AssembledAssemblyStatement CompileDataInstruction(
-        string instructionName,
-        AssemblyStatement statement)
+        string instructionName, AssemblyStatement statement)
     {
         return new AssembledAssemblyStatement
         {
             AssemblyStatement = statement,
             MachineCode = instructionName switch
             {
-                "DS" => _instructionTranslator.DS(statement.OperandList.First.ToImmediateData()),
-                "DW" => _instructionTranslator.DW(statement.OperandList.First.To16bitAdress()),
-                "DB" => _instructionTranslator.DB(statement.OperandList.Operands.Select(x => x.ToImmediateData()).ToArray()),
+                "DS" => _instructionTranslator.DS(statement.OperandList
+                                                           .First
+                                                           .ToImmediateData()),
+
+                "DW" => _instructionTranslator.DW(statement.OperandList
+                                                           .First
+                                                           .To16bitAdress()),
+
+                "DB" => _instructionTranslator.DB(statement.OperandList
+                                                           .Operands
+                                                           .Select(x => x.ToImmediateData())
+                                                           .ToArray()),
+
                 _ => throw new NotImplementedException()
             }
         };

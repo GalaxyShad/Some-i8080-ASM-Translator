@@ -41,8 +41,13 @@ public class ListingGenerator
         return listing;
     }
 
-    private string FormatLabel(Label? label) =>
-        label is not null ? $"{label.Name}:" : string.Empty;
+    private string FormatLabel(Label? label) => 
+        label?.Type switch
+        {
+            LabelType.Address => $"{label.Name}:",
+            null => string.Empty,
+            _ => $"{label.Name}"
+        };
 
     private string FormatInstruction(string? instruction, IOperandMultiple opList) =>
         $"{instruction ?? string.Empty} {string.Join(",", opList.Operands)}";
