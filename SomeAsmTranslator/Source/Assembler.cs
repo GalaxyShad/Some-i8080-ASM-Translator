@@ -54,16 +54,16 @@ class Assembler
                 statement.Label.Data = (ushort)_pgCounter;
             }
 
-            if (statement.Instruction != null)
+
+            _assembledLines.AddLast(statement.Instruction switch
             {
-                _assembledLines.AddLast(statement.Instruction switch
-                {
-                    "ORG" => AssembleOrg(statement),
-                    "EQU" => AssembleEqu(statement),
-                    "SET" => AssembleSet(statement),
-                    _ => AssembleInstruction(statement),
-                });
-            }
+                "ORG" => AssembleOrg(statement),
+                "EQU" => AssembleEqu(statement),
+                "SET" => AssembleSet(statement),
+                null => MakeAssemblyLineForPseudoInsturction(statement),
+                _ => AssembleInstruction(statement),
+            });
+
                 
             statement = _parser.Next();
         }
