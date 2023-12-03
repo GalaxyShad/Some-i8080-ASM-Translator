@@ -22,8 +22,8 @@ partial class Program
 
     static void RunOptions(ArgumentsOptions opts)
     {
-        //try
-        //{
+        try
+        {
             _listingGenerator.IsMachineCodeLineSeperation = !opts.IsKeepAllInstructionBytesOnSameLine;
 
             var assemblerLines = Assemble(opts.InputFilePath);
@@ -48,11 +48,11 @@ partial class Program
             }
 
             Console.WriteLine($"\nSuccessfull");
-        //}
-        //catch (Exception ex)
-        //{
-        //    Console.WriteLine(ex.Message);
-        //}
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
     static void HandleParseError(IEnumerable<Error> errs)
     {
@@ -66,35 +66,35 @@ partial class Program
 
     static private IEnumerable<AssemblyLine> Assemble(string filepath)
     {
-        //try
-        //{
+        try
+        {
             using var streamReader = new StreamReader(filepath);
             var asm = new Assembler(streamReader);
             return asm.AssembleAll().ToList();
-        //}
-        //catch (TranslatorLexerException ex)
-        //{
-        //    throw new Exception(
-        //        $"[ERR] [LEXER] {ex.GetType()}\n" +
-        //        $"Error at line {ex.ErrorLine}\n" +
-        //        $"      {ex.Message}"
-        //    );
-        //}
-        //catch (TranslatorParserException ex)
-        //{
-        //    throw new Exception(
-        //        $"[ERR] [PARSER] {ex.GetType()}\n" +
-        //        $"Error at line {ex.ErrorLine}\n" +
-        //        $"      {ex.Message}"
-        //    );
-        //}
-        //catch (Exception ex)
-        //{
-        //    throw new Exception(
-        //        $"[ERR] [Unexpected error] [{ex.GetType()}] Send a bug report to the developer.\n" +
-        //        $"{ex.Message}\n"
-        //    );
-        //}
+        }
+        catch (TranslatorLexerException ex)
+        {
+            throw new Exception(
+                $"[ERR] [LEXER] {ex.GetType()}\n" +
+                $"Error at line {ex.ErrorLine}\n" +
+                $"      {ex.Message}"
+            );
+        }
+        catch (TranslatorParserException ex)
+        {
+            throw new Exception(
+                $"[ERR] [PARSER] {ex.GetType()}\n" +
+                $"Error at line {ex.ErrorLine}\n" +
+                $"      {ex.Message}"
+            );
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(
+                $"[ERR] [Unexpected error] [{ex.GetType()}] Send a bug report to the developer.\n" +
+                $"{ex.Message}\n"
+            );
+        }
     }
 
     static private string ReadSourceCodeFromFile(string filepath)
