@@ -1,6 +1,4 @@
-﻿using SomeAsmTranslator.Source;
-
-namespace I8080Translator;
+﻿namespace I8080Translator;
 
 class OperandLabel : IOperand
 {

@@ -1,5 +1,3 @@
-
-
 using FluentAssertions;
 using SomeAsmTranslator.Source;
 

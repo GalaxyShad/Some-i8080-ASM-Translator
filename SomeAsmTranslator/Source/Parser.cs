@@ -17,7 +17,7 @@ class Parser
         _currentToken = TokenNext();
     }
 
-    public AssemblyStatement Next() => 
+    public AssemblyStatement Next() =>
         new(ParseLabel(), ParseInstruction(), ParseOperands(), ParseComment());
 
     private Token TokenNext()

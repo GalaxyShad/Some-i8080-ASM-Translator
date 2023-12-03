@@ -191,7 +191,7 @@ public class Assembler
 
         var instructionParamInfo = instruction.GetParameters();
 
-        if (statement.OperandList.Count != instructionParamInfo.Length 
+        if (statement.OperandList.Count != instructionParamInfo.Length
             && instructionParamInfo[0].ParameterType != typeof(byte[]))
         {
             throw new ArgumentException(
