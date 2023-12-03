@@ -1,4 +1,5 @@
 ﻿using I8080Translator;
+using SomeAsmTranslator.Operands;
 
 namespace SomeAsmTranslator.Source;
 
@@ -62,7 +63,7 @@ public class Assembler
                     throw new InvalidDataException($"Double label {statement.Label.Name}");
 
                 statement.Label.Type = LabelType.Address;
-                statement.Label.Data = (ushort)_pgCounter;
+                statement.Label.Data = new OperandProgramCounter((ushort)_pgCounter);
             }
 
             _assembledLines.AddLast(statement.Instruction switch
@@ -112,7 +113,7 @@ public class Assembler
         }
 
         statement.Label.Type = LabelType.Equ;
-        statement.Label.Data = statement.OperandList.First.ToImmediateData();
+        statement.Label.Data = statement.OperandList.First;
 
         return MakeAssemblyLineWithEmptyMachineCode(statement);
     }
@@ -126,7 +127,7 @@ public class Assembler
             throw new InvalidDataException($"EQU {statement.Label.Name} cannot be redefined with SET");
 
         statement.Label.Type = LabelType.Set;
-        statement.Label.Data = statement.OperandList.First.ToImmediateData();
+        statement.Label.Data = statement.OperandList.First;
 
         return MakeAssemblyLineWithEmptyMachineCode(statement);
     }

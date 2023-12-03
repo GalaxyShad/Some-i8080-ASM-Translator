@@ -22,15 +22,17 @@ class OperandLabel : IOperand
             throw new ArgumentNullException(
                 $"Cannot convert label {_label.Name} to 16bit data. Label data is null");
 
-        if (_label.Type is LabelType.Set or LabelType.Equ)
-            return _label.Data.Value;
+        return _label.Data.To16bitAdress();
 
-        if (_label.Data > 0xFFFF)
-            throw new InvalidCastException(
-                $"Cannot convert label {_label.Name} to 16 bit adress. " +
-                $"Value {_label.Data} is greater than 0xFFFF");
+        //if (_label.Type is LabelType.Set or LabelType.Equ)
+        //    return _label.Data.Value;
 
-        return NumericDataParser.SwapBytes(_label.Data.Value);
+        //if (_label.Data > 0xFFFF)
+        //    throw new InvalidCastException(
+        //        $"Cannot convert label {_label.Name} to 16 bit adress. " +
+        //        $"Value {_label.Data} is greater than 0xFFFF");
+
+        //return NumericDataParser.SwapBytes(_label.Data.Value);
     }
 
     public byte ToImmediateData()
@@ -46,12 +48,14 @@ class OperandLabel : IOperand
             throw new ArgumentNullException(
                 $"Cannot convert label {_label.Name} to immediate data. Label data is null");
 
-        if (_label.Data > 0xFF)
-            throw new InvalidCastException(
-                $"Cannot convert label {_label.Name} to 8 bit data. " +
-                $"Value {_label.Data} is greater than 0xFF");
+        return _label.Data.ToImmediateData();
 
-        return (byte)_label.Data;
+        //if (_label.Data > 0xFF)
+        //    throw new InvalidCastException(
+        //        $"Cannot convert label {_label.Name} to 8 bit data. " +
+        //        $"Value {_label.Data} is greater than 0xFF");
+
+        //return (byte)_label.Data;
     }
 
     public Register ToRegister()
@@ -67,12 +71,12 @@ class OperandLabel : IOperand
             throw new ArgumentNullException(
                 $"Cannot convert label {_label.Name} to Register. Label data is null");
 
-        if (_label.Data > 7 || _label.Data < 0)
-            throw new InvalidCastException(
-                $"Cannot convert label {_label.Name} to register. " +
-                $"Value {_label.Data} is out of range");
+        //if (_label.Data > 7 || _label.Data < 0)
+        //    throw new InvalidCastException(
+        //        $"Cannot convert label {_label.Name} to register. " +
+        //        $"Value {_label.Data} is out of range");
 
-        return (Register)_label.Data;
+        return _label.Data.ToRegister();
     }
 
     public RegisterPair ToRegisterPair()

@@ -33,10 +33,16 @@ class OperandNumeric : IOperand
         Parse(value);
     }
 
+    public OperandNumeric(int value)
+    {
+        _value = value;
+        _valueString = _value.ToString();
+    }
+
     public ushort To16bitAdress()
     {
         if (_value > 0xFFFF)
-            throw new InvalidCastException("Cannot convert value to 16 bit adr. Value greater than 16 bit");
+            throw new InvalidCastException("Cannot convert value  to 16 bit adr. Value greater than 16 bit");
 
         return NumericDataParser.SwapBytes((ushort)_value);
     }
@@ -62,8 +68,5 @@ class OperandNumeric : IOperand
         throw new InvalidCastException("Numeric value cannot be specified as Register Pair");
     }
 
-    public override string ToString()
-    {
-        return _valueString;
-    }
+    public override string ToString() => _valueString;
 }
