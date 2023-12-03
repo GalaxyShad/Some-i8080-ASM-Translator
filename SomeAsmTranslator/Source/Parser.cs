@@ -8,24 +8,27 @@ class Parser
     private readonly LabelTable _labelTable;
     private readonly Lexer _lexer;
 
+    private Token _currentToken = Token.EOF;
+
     public Parser(Lexer lexer, LabelTable labelTable)
     {
         _labelTable = labelTable;
         _lexer = lexer;
-        _currentToken = _lexer.Next();
+        _currentToken = TokenNext();
     }
 
-    public AssemblyStatement Next()
+    public AssemblyStatement Next() => 
+        new(ParseLabel(), ParseInstruction(), ParseOperands(), ParseComment());
+
+    private Token TokenNext()
     {
-        var label = ParseLabel();
-        var instruction = ParseInstruction();
-        var operands = ParseOperands();
-        var comments = ParseComment();
+        _currentToken = _lexer.Next();
 
-        return new(label, instruction, operands, comments);
+        while (_currentToken.TokenType == TokenType.NewLine)
+            _currentToken = _lexer.Next();
+
+        return _currentToken;
     }
-
-    private Token _currentToken = Token.EOF;
 
     private Token TokenAt() => _currentToken;
 
@@ -38,10 +41,7 @@ class Parser
             Value = _currentToken.Value
         };
 
-        _currentToken = _lexer.Next();
-
-        while (_currentToken.TokenType == TokenType.NewLine)
-            _currentToken = _lexer.Next();
+        TokenNext();
 
         return prev;
     }
@@ -94,11 +94,7 @@ class Parser
 
     private Label? ParseLabel() =>
         TokenAt().TokenType is TokenType.Label or TokenType.Symbol
-            ? _labelTable.AddOrUpdateLabel(new Label
-            {
-                IsAddress = TokenAt().TokenType == TokenType.Label,
-                Name = TokenEat().Value,
-            })
+            ? _labelTable.AddOrUpdateLabel(new Label { Name = TokenEat().Value })
             : null;
 
     private string? ParseInstruction() =>

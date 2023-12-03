@@ -15,7 +15,7 @@ namespace SomeAsmTranslatorTests
                                       CALL TEST     ");
 
             var listing = asm.AssembleAll().ToList();
-            listing[2].AssembledAssemblyStatement
+            listing[1].AssembledAssemblyStatement
                       .MachineCode
                       .Should().Equal(new byte[] { 0xCD, 0x00, 0x20 });
         }

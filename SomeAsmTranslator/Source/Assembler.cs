@@ -70,7 +70,7 @@ public class Assembler
                 "ORG" => AssembleOrg(statement),
                 "EQU" => AssembleEqu(statement),
                 "SET" => AssembleSet(statement),
-                null => MakeAssemblyLineForPseudoInsturction(statement),
+                null => MakeAssemblyLineWithEmptyMachineCode(statement),
                 _ => AssembleInstruction(statement),
             });
 
@@ -78,7 +78,7 @@ public class Assembler
         }
     }
 
-    private static AssemblyLine MakeAssemblyLineForPseudoInsturction(AssemblyStatement statement)
+    private static AssemblyLine MakeAssemblyLineWithEmptyMachineCode(AssemblyStatement statement)
     {
         return new AssemblyLine
         {
@@ -95,7 +95,7 @@ public class Assembler
     {
         _pgCounter = NumericDataParser.SwapBytes(statement.OperandList.First.To16bitAdress());
 
-        return MakeAssemblyLineForPseudoInsturction(statement);
+        return MakeAssemblyLineWithEmptyMachineCode(statement);
     }
 
     private AssemblyLine AssembleEqu(AssemblyStatement statement)
@@ -114,7 +114,7 @@ public class Assembler
         statement.Label.Type = LabelType.Equ;
         statement.Label.Data = statement.OperandList.First.ToImmediateData();
 
-        return MakeAssemblyLineForPseudoInsturction(statement);
+        return MakeAssemblyLineWithEmptyMachineCode(statement);
     }
 
     private AssemblyLine AssembleSet(AssemblyStatement statement)
@@ -128,7 +128,7 @@ public class Assembler
         statement.Label.Type = LabelType.Set;
         statement.Label.Data = statement.OperandList.First.ToImmediateData();
 
-        return MakeAssemblyLineForPseudoInsturction(statement);
+        return MakeAssemblyLineWithEmptyMachineCode(statement);
     }
 
     private AssemblyLine AssembleInstruction(AssemblyStatement statement)

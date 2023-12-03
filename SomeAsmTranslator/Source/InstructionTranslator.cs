@@ -127,56 +127,56 @@ public class InstructionTranslator
     // Direct Addresing Instructions
     public uint SHLD(ushort adr) => 0b001_00_010 << 16 | (uint)adr;
     public uint LHLD(ushort adr) => 0b001_01_010 << 16 | (uint)adr;
-    public uint STA(ushort adr) => 0b001_10_010 << 16 | (uint)adr;
-    public uint LDA(ushort adr) => 0b001_11_010 << 16 | (uint)adr;
+    public uint STA(ushort adr)  => 0b001_10_010 << 16 | (uint)adr;
+    public uint LDA(ushort adr)  => 0b001_11_010 << 16 | (uint)adr;
 
     // Jump Instructions
     public uint PCHL() => 0b1110_1001;
     public uint JMP(ushort adr) => 0b11_000_011 << 16 | (uint)adr;
 
     public uint JNZ(ushort adr) => 0b11_000_010 << 16 | (uint)adr;
-    public uint JZ(ushort adr) => 0b11_001_010 << 16 | (uint)adr;
+    public uint JZ(ushort adr)  => 0b11_001_010 << 16 | (uint)adr;
 
     public uint JNC(ushort adr) => 0b11_010_010 << 16 | (uint)adr;
-    public uint JC(ushort adr) => 0b11_011_010 << 16 | (uint)adr;
+    public uint JC(ushort adr)  => 0b11_011_010 << 16 | (uint)adr;
 
     public uint JPO(ushort adr) => 0b11_100_010 << 16 | (uint)adr;
     public uint JPE(ushort adr) => 0b11_101_010 << 16 | (uint)adr;
 
-    public uint JP(ushort adr) => 0b11_110_010 << 16 | (uint)adr;
-    public uint JM(ushort adr) => 0b11_111_010 << 16 | (uint)adr;
+    public uint JP(ushort adr)  => 0b11_110_010 << 16 | (uint)adr;
+    public uint JM(ushort adr)  => 0b11_111_010 << 16 | (uint)adr;
 
 
     // Call subroutine instructions
     public uint CALL(ushort adr) => 0b11_001_101 << 16 | (uint)adr;
 
-    public uint CNZ(ushort adr) => 0b11_000_100 << 16 | (uint)adr;
-    public uint CZ(ushort adr) => 0b11_001_100 << 16 | (uint)adr;
+    public uint CNZ(ushort adr)  => 0b11_000_100 << 16 | (uint)adr;
+    public uint CZ(ushort adr)   => 0b11_001_100 << 16 | (uint)adr;
 
-    public uint CNC(ushort adr) => 0b11_010_100 << 16 | (uint)adr;
-    public uint CC(ushort adr) => 0b11_011_100 << 16 | (uint)adr;
+    public uint CNC(ushort adr)  => 0b11_010_100 << 16 | (uint)adr;
+    public uint CC(ushort adr)   => 0b11_011_100 << 16 | (uint)adr;
 
-    public uint CPO(ushort adr) => 0b11_100_100 << 16 | (uint)adr;
-    public uint CPE(ushort adr) => 0b11_101_100 << 16 | (uint)adr;
+    public uint CPO(ushort adr)  => 0b11_100_100 << 16 | (uint)adr;
+    public uint CPE(ushort adr)  => 0b11_101_100 << 16 | (uint)adr;
 
-    public uint CP(ushort adr) => 0b11_110_100 << 16 | (uint)adr;
-    public uint CM(ushort adr) => 0b11_111_100 << 16 | (uint)adr;
+    public uint CP(ushort adr)   => 0b11_110_100 << 16 | (uint)adr;
+    public uint CM(ushort adr)   => 0b11_111_100 << 16 | (uint)adr;
 
 
     // Return from subroutine instructions
     public uint RET() => 0b11_001_001;
 
     public uint RNZ() => 0b11_000_000;
-    public uint RZ() => 0b11_001_000;
+    public uint RZ()  => 0b11_001_000;
 
     public uint RNC() => 0b11_010_000;
-    public uint RC() => 0b11_011_000;
+    public uint RC()  => 0b11_011_000;
 
     public uint RPO() => 0b11_100_000;
     public uint RPE() => 0b11_101_000;
 
-    public uint RP() => 0b11_110_000;
-    public uint RM() => 0b11_111_000;
+    public uint RP()  => 0b11_110_000;
+    public uint RM()  => 0b11_111_000;
 
     // Rst instruction
     public uint RST(byte exp)

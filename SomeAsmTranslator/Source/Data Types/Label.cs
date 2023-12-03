@@ -4,7 +4,6 @@ public class Label
 {
     public required string Name { get; set; }
     public ushort? Data { get; set; }
-    public bool IsAddress { get; set; } = true;
     public LabelType Type { get; set; } = LabelType.Unknown;
     public override string ToString() =>
         $"{Name} = {(Data != null ? $"{Data:X4}" : "NULL")}, {Type}";
