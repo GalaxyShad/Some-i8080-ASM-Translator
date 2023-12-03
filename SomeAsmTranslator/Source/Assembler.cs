@@ -12,7 +12,7 @@ public class Assembler
     private readonly LinkedList<AssemblyLine> _assembledLines = new();
     private readonly LinkedList<AssembledAssemblyStatement> _assembledLinesWithLabels = new();
 
-    private int _pgCounter = 0x0800;
+    private int _pgCounter = 0x0000;
 
     public Assembler(TextReader sourceCodeReader)
     {
