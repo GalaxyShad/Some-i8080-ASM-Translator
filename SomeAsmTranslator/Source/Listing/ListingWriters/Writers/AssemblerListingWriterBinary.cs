@@ -39,7 +39,7 @@ public class AssemblerListingWriterBinary : IAssemblerFileWriter
                     for (int i = 0; i < dif; i++)
                         fs.WriteByte(0);
                 }
-                
+
 
                 fs.Write(bytes);
                 previousLine = line;

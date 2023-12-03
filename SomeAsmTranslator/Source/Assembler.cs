@@ -29,7 +29,7 @@ public class Assembler
         AssembleWithoutLabelsData();
         ValidateLabels();
         ReassembleInstructionsWithLabels();
-        
+
         return _assembledLines;
     }
 
@@ -65,7 +65,6 @@ public class Assembler
                 statement.Label.Data = (ushort)_pgCounter;
             }
 
-
             _assembledLines.AddLast(statement.Instruction switch
             {
                 "ORG" => AssembleOrg(statement),
@@ -75,7 +74,6 @@ public class Assembler
                 _ => AssembleInstruction(statement),
             });
 
-                
             statement = _parser.Next();
         }
     }
@@ -208,9 +206,7 @@ public class Assembler
         foreach (var (CompilerFunction, Operand) in instructionParamInfo.Zip(statement.OperandList.Operands))
         {
             if (Operand is OperandLabel label && label.LabelType == LabelType.Unknown)
-            {
                 _assembledLinesWithLabels.AddLast(assembled);
-            }
 
             if (CompilerFunction.ParameterType == typeof(byte))
                 instructionArgs.Add(Operand.ToImmediateData());

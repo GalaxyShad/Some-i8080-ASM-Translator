@@ -41,7 +41,7 @@ public class ListingGenerator
         return listing;
     }
 
-    private string FormatLabel(Label? label) => 
+    private string FormatLabel(Label? label) =>
         label?.Type switch
         {
             LabelType.Address => $"{label.Name}:",
