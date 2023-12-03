@@ -17,6 +17,6 @@ public class LabelTable
     };
     public Label AddOrUpdateLabel(Label label) =>
         _labelList.ContainsKey(label.Name) ? _labelList[label.Name] : _labelList[label.Name] = label;
-
     public bool Has(Label label) => _labelList.ContainsKey(label.Name);
+    public IEnumerable<Label> GetValues() => _labelList.Values;
 }

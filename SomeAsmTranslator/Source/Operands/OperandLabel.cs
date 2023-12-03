@@ -15,12 +15,15 @@ class OperandLabel : IOperand
 
     public ushort To16bitAdress()
     {
-        if (_label.Type == LabelType.Unknown)
+        if (_label.Type is LabelType.Unknown)
             return 0x0000;
 
         if (_label.Data == null)
             throw new ArgumentNullException(
                 $"Cannot convert label {_label.Name} to 16bit data. Label data is null");
+
+        if (_label.Type is LabelType.Set or LabelType.Equ)
+            return _label.Data.Value;
 
         if (_label.Data > 0xFFFF)
             throw new InvalidCastException(
@@ -32,10 +35,10 @@ class OperandLabel : IOperand
 
     public byte ToImmediateData()
     {
-        if (_label.Type == LabelType.Unknown)
+        if (_label.Type is LabelType.Unknown)
             return 0x00;
 
-        if (_label.Type == LabelType.Address)
+        if (_label.Type is LabelType.Address)
             throw new ArgumentNullException(
                 $"Address label {_label.Name} cannot be used as immediate data.");
 
@@ -53,10 +56,10 @@ class OperandLabel : IOperand
 
     public Register ToRegister()
     {
-        if (_label.Type == LabelType.Unknown)
+        if (_label.Type is LabelType.Unknown)
             return Register.B;
 
-        if (_label.Type == LabelType.Address)
+        if (_label.Type is LabelType.Address)
             throw new ArgumentNullException(
                 $"Address label {_label.Name} cannot be used as register");
 
@@ -74,10 +77,10 @@ class OperandLabel : IOperand
 
     public RegisterPair ToRegisterPair()
     {
-        if (_label.Type == LabelType.Unknown)
+        if (_label.Type is LabelType.Unknown)
             return RegisterPair.BC;
 
-        if (_label.Type == LabelType.Address)
+        if (_label.Type is LabelType.Address)
             throw new ArgumentNullException(
                 $"Address label {_label.Name} cannot be used as register pair");
 

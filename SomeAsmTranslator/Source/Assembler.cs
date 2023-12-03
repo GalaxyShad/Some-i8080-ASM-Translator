@@ -2,7 +2,7 @@
 
 namespace SomeAsmTranslator.Source;
 
-class Assembler
+public class Assembler
 {
     private readonly Lexer _lexer;
     private readonly Parser _parser;
@@ -27,8 +27,19 @@ class Assembler
     public IEnumerable<AssemblyLine> AssembleAll()
     {
         AssembleWithoutLabelsData();
+        ValidateLabels();
         ReassembleInstructionsWithLabels();
+        
         return _assembledLines;
+    }
+
+    private void ValidateLabels()
+    {
+        foreach (var label in _labelTable.GetValues())
+        {
+            if (label.Type == LabelType.Unknown)
+                throw new Exception($"Undefined label \"{label.Name}\"");
+        }
     }
 
     private void ReassembleInstructionsWithLabels()
@@ -194,24 +205,24 @@ class Assembler
         }
 
         var instructionArgs = new List<object>();
-        foreach (var (First, Second) in instructionParamInfo.Zip(statement.OperandList.Operands))
+        foreach (var (CompilerFunction, Operand) in instructionParamInfo.Zip(statement.OperandList.Operands))
         {
-            if (Second is OperandLabel label && label.LabelType == LabelType.Unknown)
+            if (Operand is OperandLabel label && label.LabelType == LabelType.Unknown)
             {
                 _assembledLinesWithLabels.AddLast(assembled);
             }
 
-            if (First.ParameterType == typeof(byte))
-                instructionArgs.Add(Second.ToImmediateData());
+            if (CompilerFunction.ParameterType == typeof(byte))
+                instructionArgs.Add(Operand.ToImmediateData());
 
-            else if (First.ParameterType == typeof(ushort))
-                instructionArgs.Add(Second.To16bitAdress());
+            else if (CompilerFunction.ParameterType == typeof(ushort))
+                instructionArgs.Add(Operand.To16bitAdress());
 
-            else if (First.ParameterType == typeof(Register))
-                instructionArgs.Add(Second.ToRegister());
+            else if (CompilerFunction.ParameterType == typeof(Register))
+                instructionArgs.Add(Operand.ToRegister());
 
-            else if (First.ParameterType == typeof(RegisterPair))
-                instructionArgs.Add(Second.ToRegisterPair());
+            else if (CompilerFunction.ParameterType == typeof(RegisterPair))
+                instructionArgs.Add(Operand.ToRegisterPair());
 
             else throw new InvalidDataException("Unhandled type");
         }
