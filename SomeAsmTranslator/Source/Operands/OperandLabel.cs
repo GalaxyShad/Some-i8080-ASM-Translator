@@ -7,6 +7,7 @@ class OperandLabel : IOperand
     private readonly Label _label;
 
     public LabelType LabelType => _label.Type;
+    public bool IsRegisterPair => _label.Name is "B" or "D" or "H" or "SP" or "PSW";
 
     public OperandLabel(Label label)
     {

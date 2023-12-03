@@ -94,6 +94,7 @@ BEEP:
 ; 
 STDM:
     PUSH B
+    PUSH PSW
     LXI H, UDSP
     ;JMP SDM 
     NOP 
