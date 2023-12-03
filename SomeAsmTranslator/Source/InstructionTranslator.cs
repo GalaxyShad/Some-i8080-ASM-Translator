@@ -198,7 +198,7 @@ public class InstructionTranslator
     // Halt instruction
     public uint HLT() => 0b0111_0110;
 
-    public byte[] DB(byte[] bytes) => bytes;
+    public byte[] DB(params byte[] bytes) => bytes;
 
     public byte[] DW(ushort word) => new byte[] { (byte)(word & 0xF), (byte)(word >> 8) };
 
