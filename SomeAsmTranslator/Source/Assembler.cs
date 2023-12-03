@@ -207,12 +207,8 @@ public class Assembler
         var instructionArgs = new List<object>();
         foreach (var (CompilerFunction, Operand) in instructionParamInfo.Zip(statement.OperandList.Operands))
         {
-            //if (Operand is OperandLabel label && label.LabelType == LabelType.Unknown && !label.IsRegisterPair)
-            //{
-            //    Console.WriteLine(1);
-            //    _assembledLinesWithLabels.AddLast(assembled);
-            //}
-               
+            if (Operand is OperandLabel label && label.LabelType == LabelType.Unknown && !label.IsRegisterPair)
+                _assembledLinesWithLabels.AddLast(assembled);
 
             if (CompilerFunction.ParameterType == typeof(byte))
                 instructionArgs.Add(Operand.ToImmediateData());

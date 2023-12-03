@@ -82,9 +82,6 @@ class OperandLabel : IOperand
 
     public RegisterPair ToRegisterPair()
     {
-        if (_label.Type is LabelType.Unknown)
-            return RegisterPair.BC;
-
         if (_label.Type is LabelType.Address)
             throw new ArgumentNullException(
                 $"Address label {_label.Name} cannot be used as register pair");

@@ -81,10 +81,10 @@ class Parser
             case TokenType.String:
                 throw new NotImplementedException($"Strings are not implemented yet -> {TokenAt().Value}");
             case TokenType.Symbol:
-                if (TokenAt().Value is not "PSW" or "SP")
-                    operand = new OperandLabel(_labelTable.AddOrUpdateLabel(new Label { Name = TokenAt().Value }));
-                else
+                if (TokenAt().Value is "PSW" or "SP")
                     operand = new OperandLabel(new Label { Name = TokenAt().Value });
+                else
+                    operand = new OperandLabel(_labelTable.AddOrUpdateLabel(new Label { Name = TokenAt().Value }));
                 break;
             default:
                 return null;
