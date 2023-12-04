@@ -64,15 +64,11 @@ public class Assembler
         }
 
         if (statement.Label.Type is LabelType.Address)
-        {
             throw new InvalidDataException(
                 $"Double label \"{statement.Label.Name}\"");
-        }
         else if (statement.Label.Type is LabelType.Equ or LabelType.Set)
-        {
             throw new InvalidDataException(
                 $"EQU or SET label cannot be redefined as Address label \"{statement.Label.Name}\"");
-        }
     }
 
     private void AssembleWithoutLabelsData()
@@ -217,9 +213,7 @@ public class Assembler
         }
 
         if (instruction.Name is "DS" or "DW" or "DB")
-        {
             return CompileDataInstruction(instruction.Name, statement);
-        }
 
         var instructionArgs = new List<object>();
         foreach (var (CompilerFunction, Operand) in instructionParamInfo.Zip(statement.OperandList.Operands))
