@@ -40,7 +40,7 @@ class Lexer
             ',' => ProcComma(),
             '$' => ProcProgramCounterData(),
 
-            '+' or '-' => ProcUnaryPlusMin(),
+            '+' or '-' or '/' or '*' => ProcMath(),
 
             var c when IsCharLetterOrSpecialSym(c) => ProcLabelAndSymbols(),
             var c when char.IsNumber(c) => ProcNumbers(),
@@ -62,7 +62,7 @@ class Lexer
             NextChar();
     }
 
-    private Token ProcUnaryPlusMin()
+    private Token ProcMath()
     {
         var current = CurrentChar;
 
@@ -190,6 +190,5 @@ class Lexer
     }
 
     private static bool IsCharLetterOrSpecialSym(char c) =>
-        c >= 'A' && c <= 'Z' || c == '?' || c == '@' || c == '_' || 
-        c == '+' || c == '-' || c == '/' || c == '*';
+        c >= 'A' && c <= 'Z' || c == '?' || c == '@' || c == '_';
 }

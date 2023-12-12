@@ -15,6 +15,8 @@ public class OperandExpression : IOperand
     private readonly List<Token> _tokenList = new();
     private readonly Queue<Token> _tokenQueue = new();
     private readonly LabelTable _labelTable;
+
+    private bool _haveLabel = false;
     public int Count => _tokenList.Count;
 
     public OperandExpression(LabelTable labelTable)
@@ -24,8 +26,13 @@ public class OperandExpression : IOperand
 
     public void Add(Token token)
     {
+        if (token.TokenType == TokenType.Symbol)
+            _haveLabel = true;
+
         _tokenList.Add(token);
     }
+
+    public bool HaveLabel => _haveLabel;
 
     public IOperand ConvertToSingleOperand() => ParseOperand(_tokenList[0]);
 

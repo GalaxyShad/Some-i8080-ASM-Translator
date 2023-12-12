@@ -1,13 +1,12 @@
 ORG 0800h
-INIT:
-    DW --1        ; [!] Add validation
+  
 M1:    
     MOV B, M            ; Reading an array element
     INR H               ; Increment of the pointer's high register
     MOV A, L            ; Low pointer register >= 08h?
     ANI 08h             
     MOV C, L            ; Temporary saving of the low pointer register
-    JZ M2               ; Jump if the zero flag is active
+    JZ M2+5               ; Jump if the zero flag is active
     MOV A, L            ; Inverting the first 3 bits of the low pointer register if it >= 08h
     XRI 07h
     MOV L, A

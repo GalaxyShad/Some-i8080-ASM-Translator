@@ -13,6 +13,8 @@ public class Assembler
     private readonly LinkedList<AssemblyLine> _assembledLines = new();
     private readonly LinkedList<AssembledAssemblyStatement> _assembledLinesWithLabels = new();
 
+    private bool _isFirstAssembly = true;
+
     private int _pgCounter = 0x0000;
 
     public Assembler(TextReader sourceCodeReader)
@@ -56,19 +58,15 @@ public class Assembler
         if (statement.Label == null)
             return;
 
-        if (!_labelTable.Has(statement.Label))
-        {
-            statement.Label.Type = LabelType.Address;
-            statement.Label.Data = new OperandProgramCounter((ushort)_pgCounter);
-            return;
-        }
-
         if (statement.Label.Type is LabelType.Address)
             throw new InvalidDataException(
                 $"Double label \"{statement.Label.Name}\"");
         else if (statement.Label.Type is LabelType.Equ or LabelType.Set)
             throw new InvalidDataException(
                 $"EQU or SET label cannot be redefined as Address label \"{statement.Label.Name}\"");
+
+        statement.Label.Type = LabelType.Address;
+        statement.Label.Data = new OperandProgramCounter((ushort)_pgCounter);
     }
 
     private void AssembleWithoutLabelsData()
@@ -90,6 +88,8 @@ public class Assembler
 
             statement = _parser.Next();
         }
+
+        _isFirstAssembly = false;
     }
 
     private static AssemblyLine MakeAssemblyLineWithEmptyMachineCode(AssemblyStatement statement)
@@ -218,8 +218,14 @@ public class Assembler
         var instructionArgs = new List<object>();
         foreach (var (CompilerFunction, Operand) in instructionParamInfo.Zip(statement.OperandList.Operands))
         {
-            if (Operand is OperandLabel label && label.LabelType == LabelType.Unknown && !label.IsRegisterPair)
-                _assembledLinesWithLabels.AddLast(assembled);
+            if (_isFirstAssembly)
+            {
+                if (Operand is OperandLabel label && label.LabelType == LabelType.Unknown && !label.IsRegisterPair)
+                    _assembledLinesWithLabels.AddLast(assembled);
+
+                if (Operand is OperandExpression exp && exp.HaveLabel)
+                    _assembledLinesWithLabels.AddLast(assembled);
+            }
 
             if (CompilerFunction.ParameterType == typeof(byte))
                 instructionArgs.Add(Operand.ToImmediateData());
