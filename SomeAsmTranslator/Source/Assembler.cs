@@ -51,20 +51,33 @@ public class Assembler
         }
     }
 
+    private void AssignAdressLabel(AssemblyStatement statement)
+    {
+        if (statement.Label == null)
+            return;
+
+        if (!_labelTable.Has(statement.Label))
+        {
+            statement.Label.Type = LabelType.Address;
+            statement.Label.Data = new OperandProgramCounter((ushort)_pgCounter);
+            return;
+        }
+
+        if (statement.Label.Type is LabelType.Address)
+            throw new InvalidDataException(
+                $"Double label \"{statement.Label.Name}\"");
+        else if (statement.Label.Type is LabelType.Equ or LabelType.Set)
+            throw new InvalidDataException(
+                $"EQU or SET label cannot be redefined as Address label \"{statement.Label.Name}\"");
+    }
+
     private void AssembleWithoutLabelsData()
     {
         AssemblyStatement statement = _parser.Next();
 
         while (!statement.IsEmpty())
         {
-            if (statement.Label != null && statement.Label.Type is LabelType.Address or LabelType.Unknown)
-            {
-                if (_labelTable.Has(statement.Label) && statement.Label.Type is LabelType.Address)
-                    throw new InvalidDataException($"Double label {statement.Label.Name}");
-
-                statement.Label.Type = LabelType.Address;
-                statement.Label.Data = new OperandProgramCounter((ushort)_pgCounter);
-            }
+            AssignAdressLabel(statement);
 
             _assembledLines.AddLast(statement.Instruction switch
             {
@@ -200,9 +213,7 @@ public class Assembler
         }
 
         if (instruction.Name is "DS" or "DW" or "DB")
-        {
             return CompileDataInstruction(instruction.Name, statement);
-        }
 
         var instructionArgs = new List<object>();
         foreach (var (CompilerFunction, Operand) in instructionParamInfo.Zip(statement.OperandList.Operands))
