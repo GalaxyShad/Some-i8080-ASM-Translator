@@ -9,6 +9,11 @@ class Lexer
         .Concat(Assembler.GetPseudoInstructrions())
         .ToArray();
 
+    private readonly string[] _expressionOperators = new[]
+    {
+        "+", "-", "*", "/", "MOD", "NOT", "AND", "OR", "XOR", "SHR", "SHL", "(", ")"
+    };
+
     private readonly TextReader _sourceCodeReader;
 
     private int _currentChar;
@@ -35,6 +40,8 @@ class Lexer
             ',' => ProcComma(),
             '$' => ProcProgramCounterData(),
 
+            '+' or '-' => ProcUnaryPlusMin(),
+
             var c when IsCharLetterOrSpecialSym(c) => ProcLabelAndSymbols(),
             var c when char.IsNumber(c) => ProcNumbers(),
 
@@ -53,6 +60,15 @@ class Lexer
     {
         while (char.IsWhiteSpace(CurrentChar) && CurrentChar is not '\n')
             NextChar();
+    }
+
+    private Token ProcUnaryPlusMin()
+    {
+        var current = CurrentChar;
+
+        NextChar();
+
+        return new Token { Line = _lineCounter, TokenType = TokenType.ExpressionOperator, Value = current.ToString() };
     }
 
     private Token ProcLabelAndSymbols()
@@ -77,6 +93,11 @@ class Lexer
                 );
 
             return new Token { TokenType = TokenType.Instruction, Value = value, Line = _lineCounter };
+        }
+
+        if (_expressionOperators.Contains(value))
+        {
+            return new Token { TokenType = TokenType.ExpressionOperator, Value = value, Line = _lineCounter };
         }
 
         if (CurrentChar == ':')
@@ -169,5 +190,6 @@ class Lexer
     }
 
     private static bool IsCharLetterOrSpecialSym(char c) =>
-        c >= 'A' && c <= 'Z' || c == '?' || c == '@' || c == '_';
+        c >= 'A' && c <= 'Z' || c == '?' || c == '@' || c == '_' || 
+        c == '+' || c == '-' || c == '/' || c == '*';
 }

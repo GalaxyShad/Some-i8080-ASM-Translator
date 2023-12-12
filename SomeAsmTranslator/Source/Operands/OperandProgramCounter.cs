@@ -34,4 +34,6 @@ class OperandProgramCounter : IOperand
     {
         return Value.ToString();
     }
+
+    public ushort ToRawData() => _pgCounter ?? 0;
 }

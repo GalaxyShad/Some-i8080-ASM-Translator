@@ -70,4 +70,6 @@ class OperandNumeric : IOperand
     }
 
     public override string ToString() => _valueString;
+
+    public ushort ToRawData() => (ushort)_value;
 }

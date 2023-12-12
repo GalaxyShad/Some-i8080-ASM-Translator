@@ -1,4 +1,5 @@
-﻿using I8080Translator;
+﻿using DocumentFormat.OpenXml.Vml;
+using I8080Translator;
 using SomeAsmTranslator.Operands;
 
 namespace SomeAsmTranslator.Source;
@@ -50,14 +51,14 @@ class Parser
     {
         var operandList = new OperandList();
 
-        var left = ParseOperand();
+        var left = ParseExpression();
         if (left != null)
             operandList.Add(left);
 
         while (TokenAt().TokenType is TokenType.Comma)
         {
             TokenEat();
-            left = ParseOperand();
+            left = ParseExpression();
 
             if (left != null)
                 operandList.Add(left);
@@ -66,33 +67,23 @@ class Parser
         return operandList;
     }
 
-    private IOperand? ParseOperand()
+    private IOperand? ParseExpression()
     {
-        IOperand operand;
+        var expression = new OperandExpression(_labelTable);
 
-        switch (TokenAt().TokenType)
+        while (TokenAt().TokenType is TokenType.Symbol
+                                   or TokenType.Number
+                                   or TokenType.ProgramCounterData
+                                   or TokenType.ExpressionOperator
+        )
         {
-            case TokenType.ProgramCounterData:
-                operand = new OperandProgramCounter();
-                break;
-            case TokenType.Number:
-                operand = new OperandNumeric(TokenAt().Value);
-                break;
-            case TokenType.String:
-                throw new NotImplementedException($"Strings are not implemented yet -> {TokenAt().Value}");
-            case TokenType.Symbol:
-                if (TokenAt().Value is "PSW" or "SP")
-                    operand = new OperandLabel(new Label { Name = TokenAt().Value });
-                else
-                    operand = new OperandLabel(_labelTable.AddOrUpdateLabel(new Label { Name = TokenAt().Value }));
-                break;
-            default:
-                return null;
+            expression.Add(TokenEat());
         }
 
-        TokenEat();
+        if (expression.Count == 0)
+            return null;
 
-        return operand;
+        return (expression.Count != 1) ? expression : expression.ConvertToSingleOperand();
     }
 
     private Label? ParseLabel() =>

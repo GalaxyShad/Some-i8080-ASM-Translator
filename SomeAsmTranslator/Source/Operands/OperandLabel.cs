@@ -99,4 +99,6 @@ class OperandLabel : IOperand
     {
         return _label.Name;
     }
+
+    public ushort ToRawData() => _label.Data?.ToRawData() ?? 0;
 }

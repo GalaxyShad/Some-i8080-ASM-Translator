@@ -12,5 +12,6 @@ public enum TokenType
     Comma,
     EOF,
     Instruction,
-    NewLine
+    NewLine,
+    ExpressionOperator
 }
