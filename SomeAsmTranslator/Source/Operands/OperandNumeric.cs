@@ -15,16 +15,17 @@ class OperandNumeric : IOperand
 
         char last = value.ToUpper().Last();
 
-        if (last == 'H')
-            _value = dataParser.ParseHexadecimal(value);
-        else if (last == 'O' || last == 'Q')
-            _value = dataParser.ParseOctal(value);
-        else if (last == 'B')
-            _value = dataParser.ParseBinary(value);
-        else if (last == 'D' || char.IsDigit(last))
-            _value = dataParser.ParseDecimal(value);
-        else
-            throw new InvalidDataException($"{value} is invalid numeric value");
+        _value = last switch
+        {
+            'H'        => dataParser.ParseHexadecimal(value),
+            'O' or 'Q' => dataParser.ParseOctal(value),
+            'B'        => dataParser.ParseBinary(value),
+            'D'        => dataParser.ParseDecimal(value),
+
+            var x when char.IsDigit(x)  => dataParser.ParseDecimal(value),
+
+            _ => throw new InvalidDataException($"{value} is invalid numeric value")
+        };
     }
 
     public OperandNumeric(string value)
