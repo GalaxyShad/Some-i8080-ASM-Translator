@@ -82,6 +82,9 @@ public class Assembler
             if (statement.Instruction is not "EQU" and not "SET")
                 AssignAdressLabel(statement);
 
+            if (statement.Instruction is "END")
+                break;
+
             _assembledLines.Add(statement.Instruction switch
             {
                 "ORG" => AssembleOrg(statement),
@@ -269,6 +272,6 @@ public class Assembler
     }
 
     public static IEnumerable<string> GetPseudoInstructrions() =>
-        new string[] { "ORG", "EQU", "SET", "END", "IF", "ENDIF", "MACRO", "ENDM" };
+        new string[] { "ORG", "EQU", "SET", "END" };
 
 }
