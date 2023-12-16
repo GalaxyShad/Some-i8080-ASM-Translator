@@ -1,3 +1,2 @@
-DB 0FFFh
 
-MOV a,a
+MOV a,a MOV b,b

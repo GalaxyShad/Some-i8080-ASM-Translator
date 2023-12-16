@@ -21,7 +21,7 @@ public class ListingGenerator
                 Address = $"{asmLine.Address:X4}",
                 Label = FormatLabel(asmStatement.Label),
                 MachineCode = IsMachineCodeLineSeperation 
-                    ? $"{(bytes.Length != 0 ? bytes?[0] : 0):X2}" 
+                    ? bytes.Length != 0 ? $"{bytes[0]:X2}" : "" 
                     : FormatMachineCode(bytes),
                 AsmCode = FormatInstruction(asmStatement.Instruction?.Name, asmStatement.OperandList),
                 Comment = asmStatement.Comment ?? string.Empty,
