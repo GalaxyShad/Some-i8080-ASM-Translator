@@ -10,6 +10,7 @@ class Parser
     private readonly Lexer _lexer;
 
     private Token _currentToken = Token.EOF;
+    private Token _previousToken = Token.EOF;
 
     public Parser(Lexer lexer, LabelTable labelTable)
     {
@@ -25,7 +26,7 @@ class Parser
     {
         _currentToken = _lexer.Next();
 
-        while (_currentToken.TokenType == TokenType.NewLine)
+        while (_currentToken.TokenType is TokenType.NewLine)
             _currentToken = _lexer.Next();
 
         return _currentToken;
@@ -35,7 +36,7 @@ class Parser
 
     private Token TokenEat()
     {
-        var prev = new Token
+        _previousToken = new Token
         {
             Line = _currentToken.Line,
             TokenType = _currentToken.TokenType,
@@ -44,11 +45,14 @@ class Parser
 
         TokenNext();
 
-        return prev;
+        return _previousToken;
     }
 
     private OperandList ParseOperands()
     {
+        if (_previousToken.TokenType is not TokenType.Instruction and TokenType.EOF)
+            throw new Exception($"Unknown instruction {TokenAt().Value}");
+
         var operandList = new OperandList();
 
         var left = ParseExpression();

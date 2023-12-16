@@ -10,8 +10,8 @@ public class Assembler
     private readonly LabelTable _labelTable;
     private readonly InstructionTranslator _instructionTranslator;
 
-    private readonly LinkedList<AssemblyLine> _assembledLines = new();
-    private readonly LinkedList<AssembledAssemblyStatement> _assembledLinesWithLabels = new();
+    private readonly List<AssemblyLine> _assembledLines = new();
+    private readonly List<AssembledAssemblyStatement> _assembledLinesWithLabels = new();
 
     private bool _isFirstAssembly = true;
 
@@ -77,7 +77,7 @@ public class Assembler
         {
             AssignAdressLabel(statement);
 
-            _assembledLines.AddLast(statement.Instruction switch
+            _assembledLines.Add(statement.Instruction switch
             {
                 "ORG" => AssembleOrg(statement),
                 "EQU" => AssembleEqu(statement),
@@ -221,10 +221,10 @@ public class Assembler
             if (_isFirstAssembly)
             {
                 if (Operand is OperandLabel label && label.LabelType == LabelType.Unknown && !label.IsRegisterPair)
-                    _assembledLinesWithLabels.AddLast(assembled);
+                    _assembledLinesWithLabels.Add(assembled);
 
                 if (Operand is OperandExpression exp && exp.HaveLabel)
-                    _assembledLinesWithLabels.AddLast(assembled);
+                    _assembledLinesWithLabels.Add(assembled);
             }
 
             if (CompilerFunction.ParameterType == typeof(byte))
