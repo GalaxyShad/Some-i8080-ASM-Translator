@@ -50,10 +50,10 @@ class Parser
 
     private OperandList ParseOperands()
     {
-        if (_previousToken.TokenType is not TokenType.Instruction and TokenType.EOF)
-            throw new Exception($"Unknown instruction {TokenAt().Value}");
-
         var operandList = new OperandList();
+
+        if (_previousToken.TokenType is not TokenType.Instruction)
+            return operandList;
 
         var left = ParseExpression();
         if (left != null)

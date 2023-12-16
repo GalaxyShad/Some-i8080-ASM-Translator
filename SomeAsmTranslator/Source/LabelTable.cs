@@ -16,10 +16,18 @@ public class LabelTable
         { "M", new Label { Name = "M", Data = new OperandNumeric((int)Register.M), Type = LabelType.Set } },
         { "A", new Label { Name = "A", Data = new OperandNumeric((int)Register.A), Type = LabelType.Set } },
     };
-    public Label AddOrUpdateLabel(Label label) =>
-        _labelList.ContainsKey(label.Name)
-            ? _labelList[label.Name]
-            : _labelList[label.Name] = label;
+
+    public Label AddOrUpdateLabel(Label label)
+    {
+        if (_labelList.ContainsKey(label.Name))
+        {
+            _labelList[label.Name].Token = label.Token;
+            return _labelList[label.Name];
+        }
+
+        return _labelList[label.Name] = label;
+    }
+
     public bool Has(Label label) => _labelList.ContainsKey(label.Name);
     public IEnumerable<Label> GetValues() => _labelList.Values;
 }

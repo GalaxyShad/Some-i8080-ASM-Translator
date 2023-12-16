@@ -58,7 +58,7 @@ public class Assembler
         if (statement.Label == null )
             return;
 
-        if (statement.Label.Token?.TokenType is not TokenType.LabelAddress)
+        if (statement.Label.Token?.TokenType != TokenType.LabelAddress)
             throw new InvalidDataException(
                 $"\"{statement.Label.Name}\" is not an address label. Did you mean \"{statement.Label.Name}:\"?");
 
@@ -211,7 +211,7 @@ public class Assembler
         var instruction =
             _instructionTranslator.GetType()
                                   .GetMethod(statement.Instruction)
-            ?? throw new InvalidDataException($"Unknown instruction {statement.Instruction}");
+            ?? throw new InvalidDataException($"Unknown instruction \"{statement.Instruction}\"");
 
         var instructionParamInfo = instruction.GetParameters();
 

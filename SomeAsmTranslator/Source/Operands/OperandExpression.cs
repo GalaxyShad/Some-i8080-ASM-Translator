@@ -163,7 +163,7 @@ public class OperandExpression : IOperand
             TokenType.Symbol =>
                 (token.Value is "PSW" or "SP") 
                     ? new OperandLabel(new Label { Name = token.Value })
-                    : new OperandLabel(_labelTable.AddOrUpdateLabel(new Label { Name = token.Value, Token = token })),
+                    : new OperandLabel(_labelTable.AddOrUpdateLabel(new Label { Name = token.Value })),
             
             _ => throw new ArgumentException($"Unexpected token {token.TokenType} with value {token.Value}")
         };
