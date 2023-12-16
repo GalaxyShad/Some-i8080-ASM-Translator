@@ -40,7 +40,7 @@ class Lexer
             ',' => ProcComma(),
             '$' => ProcProgramCounterData(),
 
-            '+' or '-' or '/' or '*' => ProcMath(),
+            '+' or '-' or '/' or '*' or '(' or ')' => ProcMath(),
 
             var c when IsCharLetterOrSpecialSym(c) => ProcLabelAndSymbols(),
             var c when char.IsNumber(c) => ProcNumbers(),
