@@ -1,3 +1,5 @@
+XRI 05h+(5))
+
 ORG 0800h
   
 M1:    
@@ -8,8 +10,6 @@ M1:
     MOV C, L            ; Temporary saving of the low pointer register
     JZ (M1)             ; Jump if the zero flag is active
     MOV A, L            ; Inverting the first 3 bits of the low pointer register if it >= 08h
-    XRI 07h
-    MOVSA
     MOV L, A
 M2:
     MOV M, B            ; Writing an element by pointer
@@ -20,4 +20,3 @@ M2:
     ANI 0F0h            ; Checking for array overruns
     JZ M1               ; Return to loop if not out of bounds
     RST 1               ; Stop
-    sadsadasd: set 5

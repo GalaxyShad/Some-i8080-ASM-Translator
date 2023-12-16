@@ -60,7 +60,7 @@ public class Assembler
 
         if (statement.Label.Token?.TokenType is not TokenType.LabelAddress)
             throw new InvalidDataException(
-                $"\"{statement.Label.Name}\" is not an adress label. Did you mean \"{statement.Label.Name}:\"?");
+                $"\"{statement.Label.Name}\" is not an address label. Did you mean \"{statement.Label.Name}:\"?");
 
         if (statement.Label.Type is LabelType.Address)
             throw new InvalidDataException(

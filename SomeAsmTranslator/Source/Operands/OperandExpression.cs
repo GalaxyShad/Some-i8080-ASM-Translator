@@ -146,7 +146,12 @@ public class OperandExpression : IOperand
         _tokenList.ForEach(o => _tokenQueue.Enqueue(o));
         _tokenQueue.Enqueue(Token.EOF);
 
-        return ParseF();
+        var result = ParseF();
+
+        if (_tokenQueue.Peek().TokenType != TokenType.EOF)
+            throw new InvalidExpressionException($"Invalid expression {ToString()}");
+
+        return result;
     }
 
     private IOperand ParseOperand(Token token) => 
@@ -158,7 +163,7 @@ public class OperandExpression : IOperand
             TokenType.Symbol =>
                 (token.Value is "PSW" or "SP") 
                     ? new OperandLabel(new Label { Name = token.Value })
-                    : new OperandLabel(_labelTable.AddOrUpdateLabel(new Label { Name = token.Value })),
+                    : new OperandLabel(_labelTable.AddOrUpdateLabel(new Label { Name = token.Value, Token = token })),
             
             _ => throw new ArgumentException($"Unexpected token {token.TokenType} with value {token.Value}")
         };
@@ -195,7 +200,7 @@ public class OperandExpression : IOperand
 
     public override string ToString()
     {
-        return string.Join(null, _tokenList.Select(x => x.Value));
+        return string.Join(" ", _tokenList.Select(x => x.Value));
     }
 
     public ushort ToRawData() => (ushort)Parse();

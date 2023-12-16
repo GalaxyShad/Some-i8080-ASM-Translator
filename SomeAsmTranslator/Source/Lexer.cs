@@ -40,7 +40,7 @@ class Lexer
             ',' => ProcComma(),
             '$' => ProcProgramCounterData(),
 
-            '+' or '-' or '/' or '*' or '(' or ')' => ProcMath(),
+            var c when isCharExpressionOperand(c) => ProcMath(),
 
             var c when IsCharLetterOrSpecialSym(c) => ProcLabelAndSymbols(),
             var c when char.IsNumber(c) => ProcNumbers(),
@@ -116,7 +116,8 @@ class Lexer
         value += CurrentChar;
         NextChar();
 
-        while (!char.IsWhiteSpace(CurrentChar) && CurrentChar != '\0' && CurrentChar != ',')
+        while (!char.IsWhiteSpace(CurrentChar) && CurrentChar != '\0' && CurrentChar != ',' &&
+            !isCharExpressionOperand(CurrentChar))
         {
             value += CurrentChar;
             NextChar();
@@ -188,6 +189,9 @@ class Lexer
 
         return Token.NewLine;
     }
+
+    private static bool isCharExpressionOperand(char c) =>
+        c is '+' or '-' or '*' or '/' or '(' or ')';
 
     private static bool IsCharLetterOrSpecialSym(char c) =>
         c >= 'A' && c <= 'Z' || c == '?' || c == '@' || c == '_';
