@@ -187,8 +187,9 @@ public class Assembler
                                                            .ToImmediateData()),
 
                 "DW" => _instructionTranslator.DW(statement.OperandList
-                                                           .First
-                                                           .To16bitAdress()),
+                                                           .Operands
+                                                           .Select(x => x.To16bitAdress())
+                                                           .ToArray()),
 
                 "DB" => _instructionTranslator.DB(statement.OperandList
                                                            .Operands
@@ -219,7 +220,8 @@ public class Assembler
         var instructionParamInfo = instruction.GetParameters();
 
         if (statement.OperandList.Count != instructionParamInfo.Length
-            && instructionParamInfo[0].ParameterType != typeof(byte[]))
+            && instructionParamInfo[0].ParameterType != typeof(byte[])
+            && instructionParamInfo[0].ParameterType != typeof(ushort[]))
         {
             throw new ArgumentException(
                 $"{instruction.Name} takes {instructionParamInfo.Length} arguments, " +
@@ -227,7 +229,17 @@ public class Assembler
         }
 
         if (instruction.Name is "DS" or "DW" or "DB")
-            return CompileDataInstruction(instruction.Name, statement);
+        {
+            assembled = CompileDataInstruction(instruction.Name, statement);
+
+            if (_isFirstAssembly)
+            {
+                _assembledLinesWithLabels.Add(assembled);
+            }
+
+            return assembled;
+        }
+            
 
         var instructionArgs = new List<object>();
         foreach (var (CompilerFunction, Operand) in instructionParamInfo.Zip(statement.OperandList.Operands))

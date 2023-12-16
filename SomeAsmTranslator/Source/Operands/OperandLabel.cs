@@ -22,16 +22,6 @@ class OperandLabel : IOperand
                 $"Cannot convert label {_label.Name} to 16bit data. Label data is null");
 
         return _label.Data.To16bitAdress();
-
-        //if (_label.Type is LabelType.Set or LabelType.Equ)
-        //    return _label.Data.Value;
-
-        //if (_label.Data > 0xFFFF)
-        //    throw new InvalidCastException(
-        //        $"Cannot convert label {_label.Name} to 16 bit adress. " +
-        //        $"Value {_label.Data} is greater than 0xFFFF");
-
-        //return NumericDataParser.SwapBytes(_label.Data.Value);
     }
 
     public byte ToImmediateData()

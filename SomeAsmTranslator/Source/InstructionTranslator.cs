@@ -1,4 +1,5 @@
-﻿using I8080Translator;
+﻿using DocumentFormat.OpenXml.ExtendedProperties;
+using I8080Translator;
 
 namespace SomeAsmTranslator.Source;
 
@@ -199,9 +200,7 @@ public class InstructionTranslator
     public uint HLT() => 0b0111_0110;
 
     public byte[] DB(params byte[] bytes) => bytes;
-
-    public byte[] DW(ushort word) => new byte[] { (byte)(word & 0xF), (byte)(word >> 8) };
-
+    public byte[] DW(params ushort[] words) => words.SelectMany(x => new byte[] { (byte)(x >> 8), (byte)(x & 0xF) }).ToArray();
     public byte[] DS(int count) => new byte[count];
 
     public static IEnumerable<string> GetInstructionNames() =>
