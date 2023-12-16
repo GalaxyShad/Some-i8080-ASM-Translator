@@ -174,9 +174,9 @@ public class Assembler
         if (_labelTable.Has(statement.Label))
         {
             if (statement.Label.Type == LabelType.Equ)
-                throw new InvalidDataException($"EQU {statement.Label.Name} cannot be redefined");
+                throw new InvalidDataException($"EQU '{statement.Label.Name}' cannot be redefined");
             else if (statement.Label.Type == LabelType.Set)
-                throw new InvalidDataException($"SET {statement.Label.Name} cannot be redefined with EQU");
+                throw new InvalidDataException($"SET '{statement.Label.Name}' cannot be redefined with EQU");
         }
 
         statement.Label.Type = LabelType.Equ;
@@ -194,7 +194,7 @@ public class Assembler
             throw new InvalidDataException($"Extra colon in SET definition \"{statement.Label.Name}:\". Did you mean \"{statement.Label.Name}\"?");
 
         if (_labelTable.Has(statement.Label) && statement.Label.Type == LabelType.Equ)
-            throw new InvalidDataException($"EQU {statement.Label.Name} cannot be redefined with SET");
+            throw new InvalidDataException($"EQU '{statement.Label.Name}' cannot be redefined with SET");
 
         statement.Label.Type = LabelType.Set;
         statement.Label.Data = statement.OperandList.First;

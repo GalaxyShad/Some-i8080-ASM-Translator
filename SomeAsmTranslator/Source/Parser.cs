@@ -81,8 +81,18 @@ class Parser
                                    or TokenType.ExpressionOperator
         )
         {
-            expression.Add(TokenEat());
+            var token = TokenEat();
+
+            expression.Add(token);
+
+            if (token.TokenType is TokenType.Symbol or TokenType.Number && TokenAt().TokenType is TokenType.Symbol or TokenType.Number)
+                break;
         }
+
+        if (TokenAt().TokenType is TokenType.Number)
+            throw new TranslatorParserException(
+                $"Expected instruction, label or column, but number '{TokenAt().Value}' was found.",
+                TokenAt().Line);
 
         if (expression.Count == 0)
             return null;
