@@ -44,7 +44,19 @@ class NumericDataParser
         source = NormalizeString(source);
 
         if (!IsValidDecimal(source))
-            throw new InvalidDataException($"Invalid Decimal value -> {source}");
+        {
+            var errString = $"Invalid Decimal value -> {source}";
+
+            if (Regex.IsMatch(source, "^([\\dA-F])*$"))
+            {
+                errString +=
+                    $"\n\nDid you mean \"{source}h\"?\n" +
+                    $"Remember, each hexadecimal number must be followed by a letter 'H' and must begin with a numeric digit (0-9)";
+            }
+
+            throw new InvalidDataException(errString);
+        }
+            
 
         return Convert.ToInt32(source.Last() == 'D' ? source[..^1] : source, 10);
     }

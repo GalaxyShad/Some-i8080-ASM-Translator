@@ -1,5 +1,7 @@
-﻿using I8080Translator;
+﻿using DocumentFormat.OpenXml.Drawing.Diagrams;
+using I8080Translator;
 using SomeAsmTranslator.Operands;
+using System.Text.RegularExpressions;
 
 namespace SomeAsmTranslator.Source;
 
@@ -40,8 +42,23 @@ public class Assembler
     {
         foreach (var label in _labelTable.GetValues())
         {
-            if (label.Type == LabelType.Unknown)
-                throw new Exception($"Undefined label \"{label.Name}\"");
+            if (label.Type != LabelType.Unknown)
+                continue;
+
+            var errString = $"Undefined label \"{label.Name}\".";
+            if (Regex.IsMatch(label.Name, "^([\\dA-F])*$"))
+            {
+                var correctedNumber = "0" + label.Name;
+
+                if (!correctedNumber.EndsWith('H'))
+                    correctedNumber += "h";
+
+                errString += 
+                    $"\n\nDid you mean \"{correctedNumber}\"?\n" +
+                    $"Remember, each hexadecimal number must be followed by a letter 'H' and must begin with a numeric digit (0-9)";
+            }
+
+            throw new Exception(errString);
         }
     }
 
