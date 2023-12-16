@@ -20,4 +20,4 @@ M2:
     ANI 0F0h            ; Checking for array overruns
     JZ M1               ; Return to loop if not out of bounds
     RST 1               ; Stop
-    sadsadasd MOV a, a
+    sadsadasd: set 5

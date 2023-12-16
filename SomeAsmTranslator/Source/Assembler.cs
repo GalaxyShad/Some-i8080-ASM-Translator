@@ -55,8 +55,12 @@ public class Assembler
 
     private void AssignAdressLabel(AssemblyStatement statement)
     {
-        if (statement.Label == null)
+        if (statement.Label == null )
             return;
+
+        if (statement.Label.Token?.TokenType is not TokenType.LabelAddress)
+            throw new InvalidDataException(
+                $"\"{statement.Label.Name}\" is not an adress label. Did you mean \"{statement.Label.Name}:\"?");
 
         if (statement.Label.Type is LabelType.Address)
             throw new InvalidDataException(
@@ -75,7 +79,8 @@ public class Assembler
 
         while (!statement.IsEmpty())
         {
-            AssignAdressLabel(statement);
+            if (statement.Instruction is not "EQU" and not "SET")
+                AssignAdressLabel(statement);
 
             _assembledLines.Add(statement.Instruction switch
             {
@@ -117,6 +122,9 @@ public class Assembler
         if (statement.Label == null)
             throw new InvalidDataException("Name of symbol is missing for EQU");
 
+        if (statement.Label.Token?.TokenType is TokenType.LabelAddress)
+            throw new InvalidDataException($"Extra colon in EQU definition \"{statement.Label.Name}:\". Did you mean \"{statement.Label.Name}\"?");
+
         if (_labelTable.Has(statement.Label))
         {
             if (statement.Label.Type == LabelType.Equ)
@@ -135,6 +143,9 @@ public class Assembler
     {
         if (statement.Label == null)
             throw new InvalidDataException("Name of symbol is missing for SET");
+
+        if (statement.Label.Token?.TokenType is TokenType.LabelAddress)
+            throw new InvalidDataException($"Extra colon in SET definition \"{statement.Label.Name}:\". Did you mean \"{statement.Label.Name}\"?");
 
         if (_labelTable.Has(statement.Label) && statement.Label.Type == LabelType.Equ)
             throw new InvalidDataException($"EQU {statement.Label.Name} cannot be redefined with SET");

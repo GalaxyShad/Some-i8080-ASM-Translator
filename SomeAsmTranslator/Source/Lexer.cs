@@ -103,7 +103,7 @@ class Lexer
         if (CurrentChar == ':')
         {
             NextChar();
-            return new Token { TokenType = TokenType.Label, Value = value, Line = _lineCounter };
+            return new Token { TokenType = TokenType.LabelAddress, Value = value, Line = _lineCounter };
         }
 
         return new Token { TokenType = TokenType.Symbol, Value = value, Line = _lineCounter };
