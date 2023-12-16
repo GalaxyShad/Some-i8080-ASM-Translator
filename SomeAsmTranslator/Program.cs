@@ -93,23 +93,29 @@ partial class Program
         catch (TranslatorLexerException ex)
         {
             throw new Exception(
-                $"[ERR] [LEXER] {ex.GetType()}\n" +
-                $"Error at line {ex.ErrorLine}\n" +
-                $"      {ex.Message}"
+                $"[ERR] [LEXER] {filepath}\n" +
+                $"[Line {ex.ErrorLine}] {ex.Message}\n"
             );
         }
         catch (TranslatorParserException ex)
         {
             throw new Exception(
-                $"[ERR] [PARSER] {ex.GetType()}\n" +
-                $"Error at line {ex.ErrorLine}\n" +
-                $"      {ex.Message}"
+                $"[ERR] [PARSER] {filepath}\n" +
+                $"[Line {ex.ErrorLine}] {ex.Message}\n"
+            );
+        }
+        catch (TranslatorAssemblerException ex)
+        {
+            throw new Exception(
+                $"[ERR] [ASSEMBLER] {filepath}\n" +
+                $"[Line {ex.ErrorLine}] {ex.Message}\n"
             );
         }
         catch (Exception ex)
         {
             throw new Exception(
-                $"[ERR] [Unexpected error] [{ex.GetType()}] Send a bug report to the developer.\n" +
+                $"[ERR] [Unexpected error] {filepath}\n" +
+                $"[{ex.GetType()}] Send a bug report to the developer.\n" +
                 $"{ex.Message}\n"
             );
         }

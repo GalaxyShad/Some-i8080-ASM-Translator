@@ -1,6 +1,7 @@
 ﻿using DocumentFormat.OpenXml.Drawing.Diagrams;
 using I8080Translator;
 using SomeAsmTranslator.Operands;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace SomeAsmTranslator.Source;
@@ -58,7 +59,10 @@ public class Assembler
                     $"Remember, each hexadecimal number must be followed by a letter 'H' and must begin with a numeric digit (0-9)";
             }
 
-            throw new Exception(errString);
+            throw new TranslatorAssemblerException(
+                $"Label [{label.Name}]. {errString}",
+                label.Token?.Line ?? 0
+            );
         }
     }
 
@@ -96,21 +100,43 @@ public class Assembler
 
         while (!statement.IsEmpty())
         {
-            if (statement.Instruction is not "EQU" and not "SET")
-                AssignAdressLabel(statement);
+            if (statement.Instruction?.Name is not "EQU" and not "SET")
+            {
+                try
+                {
+                    AssignAdressLabel(statement);
+                }
+                catch (Exception ex)
+                {
+                    throw new TranslatorAssemblerException(
+                        $"Label '{statement.Label?.Name}': {ex.Message}",
+                        statement.Label?.Token?.Line ?? 0
+                    );
+                }
+            }
 
-            if (statement.Instruction is "END")
+            if (statement.Instruction?.Name is "END")
                 break;
 
-            _assembledLines.Add(statement.Instruction switch
+            try
             {
-                "ORG" => AssembleOrg(statement),
-                "EQU" => AssembleEqu(statement),
-                "SET" => AssembleSet(statement),
-                null => MakeAssemblyLineWithEmptyMachineCode(statement),
-                _ => AssembleInstruction(statement),
-            });
-
+                _assembledLines.Add(statement.Instruction?.Name switch
+                {
+                    "ORG" => AssembleOrg(statement),
+                    "EQU" => AssembleEqu(statement),
+                    "SET" => AssembleSet(statement),
+                    null => MakeAssemblyLineWithEmptyMachineCode(statement),
+                    _ => AssembleInstruction(statement),
+                });
+            }
+            catch (Exception ex)
+            {
+                throw new TranslatorAssemblerException(
+                    $"Instruction '{statement.Instruction?.Name}': {ex.Message}",
+                    statement.Instruction?.Line ?? 0
+                );
+            }
+            
             statement = _parser.Next();
         }
 
@@ -231,7 +257,7 @@ public class Assembler
 
         var instruction =
             _instructionTranslator.GetType()
-                                  .GetMethod(statement.Instruction)
+                                  .GetMethod(statement.Instruction.Name)
             ?? throw new InvalidDataException($"Unknown instruction \"{statement.Instruction}\"");
 
         var instructionParamInfo = instruction.GetParameters();
@@ -257,32 +283,10 @@ public class Assembler
             return assembled;
         }
             
-
         var instructionArgs = new List<object>();
         foreach (var (CompilerFunction, Operand) in instructionParamInfo.Zip(statement.OperandList.Operands))
         {
-            if (_isFirstAssembly)
-            {
-                if (Operand is OperandLabel label && label.LabelType == LabelType.Unknown && !label.IsRegisterPair)
-                    _assembledLinesWithLabels.Add(assembled);
-
-                if (Operand is OperandExpression exp && exp.HaveLabel)
-                    _assembledLinesWithLabels.Add(assembled);
-            }
-
-            if (CompilerFunction.ParameterType == typeof(byte))
-                instructionArgs.Add(Operand.ToImmediateData());
-
-            else if (CompilerFunction.ParameterType == typeof(ushort))
-                instructionArgs.Add(Operand.To16bitAdress());
-
-            else if (CompilerFunction.ParameterType == typeof(Register))
-                instructionArgs.Add(Operand.ToRegister());
-
-            else if (CompilerFunction.ParameterType == typeof(RegisterPair))
-                instructionArgs.Add(Operand.ToRegisterPair());
-
-            else throw new InvalidDataException("Unhandled type");
+            ConvertOperandsToInstructionData(assembled, instructionArgs, CompilerFunction, Operand);
         }
 
         uint code = (uint)instruction.Invoke(_instructionTranslator, instructionArgs.ToArray())!;
@@ -294,10 +298,36 @@ public class Assembler
         assembled.MachineCode = bytes.SkipWhile(x => x == 0).ToArray();
 
         // NOP Fix
-        if (statement.Instruction == "NOP")
+        if (statement.Instruction.Name == "NOP")
             assembled.MachineCode = new byte[] { 0 };
 
         return assembled;
+    }
+
+    private void ConvertOperandsToInstructionData(AssembledAssemblyStatement assembled, List<object> instructionArgs, ParameterInfo CompilerFunction, IOperand Operand)
+    {
+        if (_isFirstAssembly)
+        {
+            if (Operand is OperandLabel label && label.LabelType == LabelType.Unknown && !label.IsRegisterPair)
+                _assembledLinesWithLabels.Add(assembled);
+
+            if (Operand is OperandExpression exp && exp.HaveLabel)
+                _assembledLinesWithLabels.Add(assembled);
+        }
+
+        if (CompilerFunction.ParameterType == typeof(byte))
+            instructionArgs.Add(Operand.ToImmediateData());
+
+        else if (CompilerFunction.ParameterType == typeof(ushort))
+            instructionArgs.Add(Operand.To16bitAdress());
+
+        else if (CompilerFunction.ParameterType == typeof(Register))
+            instructionArgs.Add(Operand.ToRegister());
+
+        else if (CompilerFunction.ParameterType == typeof(RegisterPair))
+            instructionArgs.Add(Operand.ToRegisterPair());
+
+        else throw new InvalidDataException("Unhandled type");
     }
 
     public static IEnumerable<string> GetPseudoInstructrions() =>

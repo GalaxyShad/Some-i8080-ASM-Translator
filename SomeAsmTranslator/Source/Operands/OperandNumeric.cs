@@ -5,17 +5,15 @@ namespace SomeAsmTranslator.Operands;
 
 class OperandNumeric : IOperand
 {
-    private int _value;
-
     private readonly string _valueString;
 
-    private void Parse(string value)
+    private int Parse(string value)
     {
         var dataParser = new NumericDataParser();
 
         char last = value.ToUpper().Last();
 
-        _value = last switch
+        return last switch
         {
             'H'        => dataParser.ParseHexadecimal(value),
             'O' or 'Q' => dataParser.ParseOctal(value),
@@ -31,37 +29,38 @@ class OperandNumeric : IOperand
     public OperandNumeric(string value)
     {
         _valueString = value;
-        Parse(value);
     }
 
-    public OperandNumeric(int value)
-    {
-        _value = value;
-        _valueString = _value.ToString();
-    }
+    public OperandNumeric(int value) : this(value.ToString()) { }
 
     public ushort To16bitAdress()
     {
-        if (_value > 0xFFFF)
+        var res = Parse(_valueString);
+
+        if (res > 0xFFFF)
             throw new InvalidCastException("Cannot convert value  to 16 bit adr. Value greater than 16 bit");
 
-        return NumericDataParser.SwapBytes((ushort)_value);
+        return NumericDataParser.SwapBytes((ushort)res);
     }
 
     public byte ToImmediateData()
     {
-        if (_value > 0xFF)
+        var res = Parse(_valueString);
+
+        if (res > 0xFF)
             throw new InvalidCastException("Cannot convert value to 8 bit data. Value greater than 8 bit");
 
-        return (byte)_value;
+        return (byte)res;
     }
 
     public Register ToRegister()
     {
-        if (_value > 7 || _value < 0)
+        var res = Parse(_valueString);
+
+        if (res > 7 || res < 0)
             throw new InvalidCastException("Cannot convert value to register. Unexisting register");
 
-        return (Register)_value;
+        return (Register)res;
     }
 
     public RegisterPair ToRegisterPair()
@@ -71,5 +70,5 @@ class OperandNumeric : IOperand
 
     public override string ToString() => _valueString;
 
-    public ushort ToRawData() => (ushort)_value;
+    public ushort ToRawData() => (ushort)Parse(_valueString);
 }

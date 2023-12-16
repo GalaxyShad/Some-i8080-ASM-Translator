@@ -23,7 +23,7 @@ public class ListingGenerator
                 MachineCode = IsMachineCodeLineSeperation 
                     ? $"{(bytes.Length != 0 ? bytes?[0] : 0):X2}" 
                     : FormatMachineCode(bytes),
-                AsmCode = FormatInstruction(asmStatement.Instruction, asmStatement.OperandList),
+                AsmCode = FormatInstruction(asmStatement.Instruction?.Name, asmStatement.OperandList),
                 Comment = asmStatement.Comment ?? string.Empty,
             });
 

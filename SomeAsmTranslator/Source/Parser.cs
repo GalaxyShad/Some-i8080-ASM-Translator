@@ -95,8 +95,8 @@ class Parser
             ? _labelTable.AddOrUpdateLabel(new Label { Token = TokenAt(), Name = TokenEat().Value })
             : null;
 
-    private string? ParseInstruction() =>
-        TokenAt().TokenType is TokenType.Instruction ? TokenEat().Value : null;
+    private Instruction? ParseInstruction() =>
+        TokenAt().TokenType is TokenType.Instruction ? new Instruction { Line = TokenAt().Line, Name = TokenEat().Value }  : null;
 
     private string? ParseComment() =>
         TokenAt().TokenType is TokenType.Comment ? TokenEat().Value : null;
