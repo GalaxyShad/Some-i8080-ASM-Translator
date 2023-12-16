@@ -79,16 +79,16 @@ public class Assembler
         if (statement.Label == null )
             return;
 
-        if (statement.Label.Token?.TokenType != TokenType.LabelAddress)
-            throw new InvalidDataException(
-                $"\"{statement.Label.Name}\" is not an address label. Did you mean \"{statement.Label.Name}:\"?");
-
         if (statement.Label.Type is LabelType.Address)
             throw new InvalidDataException(
                 $"Double label \"{statement.Label.Name}\"");
         else if (statement.Label.Type is LabelType.Equ or LabelType.Set)
             throw new InvalidDataException(
                 $"EQU or SET label cannot be redefined as Address label \"{statement.Label.Name}\"");
+
+        if (statement.Label.Token?.TokenType != TokenType.LabelAddress)
+            throw new InvalidDataException(
+                $"\"{statement.Label.Name}\" is not an address label. Did you mean \"{statement.Label.Name}:\"?");
 
         statement.Label.Type = LabelType.Address;
         statement.Label.Data = new OperandProgramCounter((ushort)_pgCounter);
