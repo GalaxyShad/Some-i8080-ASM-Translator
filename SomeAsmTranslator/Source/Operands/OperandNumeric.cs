@@ -38,7 +38,7 @@ class OperandNumeric : IOperand
         var res = Parse(_valueString);
 
         if (res > 0xFFFF)
-            throw new InvalidCastException("Cannot convert value  to 16 bit adr. Value greater than 16 bit");
+            throw new InvalidCastException($"Cannot convert value '{res:X}' to 16 bit adr. Value greater than 16 bit");
 
         return NumericDataParser.SwapBytes((ushort)res);
     }
@@ -48,7 +48,7 @@ class OperandNumeric : IOperand
         var res = Parse(_valueString);
 
         if (res > 0xFF)
-            throw new InvalidCastException("Cannot convert value to 8 bit data. Value greater than 8 bit");
+            throw new InvalidCastException($"Cannot convert value '{res:X}' to 8 bit data. Value greater than 8 bit");
 
         return (byte)res;
     }
@@ -58,14 +58,14 @@ class OperandNumeric : IOperand
         var res = Parse(_valueString);
 
         if (res > 7 || res < 0)
-            throw new InvalidCastException("Cannot convert value to register. Unexisting register");
+            throw new InvalidCastException($"Cannot convert value '{res:X}' to register. Unexisting register");
 
         return (Register)res;
     }
 
     public RegisterPair ToRegisterPair()
     {
-        throw new InvalidCastException("Numeric value cannot be specified as Register Pair");
+        throw new InvalidCastException($"Numeric value cannot be specified as Register Pair");
     }
 
     public override string ToString() => _valueString;

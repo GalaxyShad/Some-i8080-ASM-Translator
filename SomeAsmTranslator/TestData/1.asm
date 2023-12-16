@@ -1,0 +1,3 @@
+DB 0FFFh
+
+MOV a,a
