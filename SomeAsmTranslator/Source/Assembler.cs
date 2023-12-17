@@ -80,11 +80,15 @@ public class Assembler
             return;
 
         if (statement.Label.Type is LabelType.Address)
+        {
             throw new InvalidDataException(
                 $"Double label \"{statement.Label.Name}\"");
+        }
         else if (statement.Label.Type is LabelType.Equ or LabelType.Set)
+        { 
             throw new InvalidDataException(
                 $"EQU or SET label cannot be redefined as Address label \"{statement.Label.Name}\"");
+        }
 
         if (statement.Label.Token?.TokenType != TokenType.LabelAddress)
             throw new InvalidDataException(
@@ -158,6 +162,9 @@ public class Assembler
 
     private AssemblyLine AssembleOrg(AssemblyStatement statement)
     {
+        if (statement.OperandList.Count != 1)
+            throw new ArgumentException($"ORG takes 1 argument, but {statement.OperandList.Count} were given");
+
         _pgCounter = NumericDataParser.SwapBytes(statement.OperandList.First.To16bitAdress());
 
         return MakeAssemblyLineWithEmptyMachineCode(statement);
@@ -179,6 +186,9 @@ public class Assembler
                 throw new InvalidDataException($"SET '{statement.Label.Name}' cannot be redefined with EQU");
         }
 
+        if (statement.OperandList.Count != 1)
+            throw new ArgumentException($"EQU takes 1 argument, but {statement.OperandList.Count} were given");
+
         statement.Label.Type = LabelType.Equ;
         statement.Label.Data = statement.OperandList.First;
 
@@ -195,6 +205,9 @@ public class Assembler
 
         if (_labelTable.Has(statement.Label) && statement.Label.Type == LabelType.Equ)
             throw new InvalidDataException($"EQU '{statement.Label.Name}' cannot be redefined with SET");
+
+        if (statement.OperandList.Count != 1)
+            throw new ArgumentException($"SET takes 1 argument, but {statement.OperandList.Count} were given");
 
         statement.Label.Type = LabelType.Set;
         statement.Label.Data = statement.OperandList.First;

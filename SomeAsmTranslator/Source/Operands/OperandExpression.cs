@@ -178,7 +178,7 @@ public class OperandExpression : IOperand
         var result = (ushort)Parse();
 
         if (result > 0xFF)
-            throw new Exception($"Cannot convert expression to immediate data. Evaluated value <{result}> is greater than 0xFF");
+            throw new Exception($"Cannot convert expression to immediate data (8bit). Evaluated value <0x{result:X}> is greater than 0xFF");
 
         return (byte)result;
     }
@@ -188,14 +188,14 @@ public class OperandExpression : IOperand
         var result = (ushort)Parse();
 
         if (result > 7)
-            throw new InvalidCastException($"Cannot expression to register. Evaluated value <{result}> is greater than 7");
+            throw new InvalidCastException($"Cannot convert expression to register. Evaluated value <0x{result:X}> is greater than 7");
 
         return (Register)result;
     }
 
     public RegisterPair ToRegisterPair()
     {
-        throw new Exception($"Expression cannot be used as Register Pair");
+        throw new Exception($"Expressions cannot be used as Register Pairs");
     }
 
     public override string ToString()

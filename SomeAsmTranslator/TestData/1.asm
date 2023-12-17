@@ -1,2 +1,3 @@
+SONYA EQU 5, 8
 
-MOV a,a MOV b,b
+MVI A, 5
