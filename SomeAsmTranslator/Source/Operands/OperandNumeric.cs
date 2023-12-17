@@ -15,12 +15,12 @@ class OperandNumeric : IOperand
 
         return last switch
         {
-            'H'        => dataParser.ParseHexadecimal(value),
+            'H' => dataParser.ParseHexadecimal(value),
             'O' or 'Q' => dataParser.ParseOctal(value),
-            'B'        => dataParser.ParseBinary(value),
-            'D'        => dataParser.ParseDecimal(value),
+            'B' => dataParser.ParseBinary(value),
+            'D' => dataParser.ParseDecimal(value),
 
-            var x when char.IsDigit(x)  => dataParser.ParseDecimal(value),
+            var x when char.IsDigit(x) => dataParser.ParseDecimal(value),
 
             _ => throw new InvalidDataException($"{value} is invalid numeric value")
         };

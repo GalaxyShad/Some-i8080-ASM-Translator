@@ -56,7 +56,7 @@ class NumericDataParser
 
             throw new InvalidDataException(errString);
         }
-            
+
 
         return Convert.ToInt32(source.Last() == 'D' ? source[..^1] : source, 10);
     }

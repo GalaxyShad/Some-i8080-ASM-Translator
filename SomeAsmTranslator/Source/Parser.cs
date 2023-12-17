@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Vml;
-using I8080Translator;
+﻿using I8080Translator;
 using SomeAsmTranslator.Operands;
 
 namespace SomeAsmTranslator.Source;
@@ -84,8 +83,8 @@ class Parser
 
         while (TokenAt().TokenType
             is TokenType.Symbol
-            or TokenType.Number 
-            or TokenType.ProgramCounterData 
+            or TokenType.Number
+            or TokenType.ProgramCounterData
             or TokenType.ExpressionOperator)
         {
             var token = TokenEat();
@@ -109,8 +108,8 @@ class Parser
         if (expression.Count == 0)
             return null;
 
-        return (expression.Count != 1) 
-            ? expression 
+        return (expression.Count != 1)
+            ? expression
             : expression.ConvertToSingleOperand();
     }
 
@@ -148,7 +147,7 @@ class Parser
                  )
         };
     }
-        
+
 
     private string? ParseComment()
     {

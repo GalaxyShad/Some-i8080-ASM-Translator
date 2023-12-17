@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.ExtendedProperties;
-using I8080Translator;
+﻿using I8080Translator;
 
 namespace SomeAsmTranslator.Source;
 

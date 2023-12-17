@@ -48,7 +48,7 @@ public class OperandExpression : IOperand
             result = (short)(token.Value switch
             {
                 "AND" => result & ParseE(),
-                "OR"  => result | ParseE(),
+                "OR" => result | ParseE(),
                 "XOR" => result ^ ParseE(),
                 _ => throw new NotImplementedException(),
             });
@@ -88,9 +88,9 @@ public class OperandExpression : IOperand
 
             result = (short)(token.Value switch
             {
-                "*"   => result  * ParseM(),
-                "/"   => result  / ParseM(),
-                "MOD" => result  % ParseM(),
+                "*" => result * ParseM(),
+                "/" => result / ParseM(),
+                "MOD" => result % ParseM(),
                 "SHL" => result << ParseM(),
                 "SHR" => result >> ParseM(),
                 _ => throw new NotImplementedException(),
@@ -154,17 +154,17 @@ public class OperandExpression : IOperand
         return result;
     }
 
-    private IOperand ParseOperand(Token token) => 
+    private IOperand ParseOperand(Token token) =>
         token.TokenType switch
         {
-            TokenType.Number =>             new OperandNumeric(token.Value),
+            TokenType.Number => new OperandNumeric(token.Value),
             TokenType.ProgramCounterData => new OperandProgramCounter(),
-            TokenType.String =>             throw new NotImplementedException($"Strings are not implemented yet -> {token.Value}"),
+            TokenType.String => throw new NotImplementedException($"Strings are not implemented yet -> {token.Value}"),
             TokenType.Symbol =>
-                (token.Value is "PSW" or "SP") 
+                (token.Value is "PSW" or "SP")
                     ? new OperandLabel(new Label { Name = token.Value })
                     : new OperandLabel(_labelTable.AddOrUpdateLabel(new Label { Name = token.Value })),
-            
+
             _ => throw new ArgumentException($"Unexpected token {token.TokenType} with value {token.Value}")
         };
 

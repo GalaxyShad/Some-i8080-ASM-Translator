@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Drawing.Diagrams;
-using I8080Translator;
+﻿using I8080Translator;
 using SomeAsmTranslator.Operands;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -54,7 +53,7 @@ public class Assembler
                 if (!correctedNumber.EndsWith('H'))
                     correctedNumber += "h";
 
-                errString += 
+                errString +=
                     $"\n\nDid you mean \"{correctedNumber}\"?\n" +
                     $"Remember, each hexadecimal number must be followed by a letter 'H' and must begin with a numeric digit (0-9)";
             }
@@ -76,7 +75,7 @@ public class Assembler
 
     private void AssignAdressLabel(AssemblyStatement statement)
     {
-        if (statement.Label == null )
+        if (statement.Label == null)
             return;
 
         if (statement.Label.Type is LabelType.Address)
@@ -85,7 +84,7 @@ public class Assembler
                 $"Double label \"{statement.Label.Name}\"");
         }
         else if (statement.Label.Type is LabelType.Equ or LabelType.Set)
-        { 
+        {
             throw new InvalidDataException(
                 $"EQU or SET label cannot be redefined as Address label \"{statement.Label.Name}\"");
         }
@@ -140,7 +139,7 @@ public class Assembler
                     statement.Instruction?.Line ?? 0
                 );
             }
-            
+
             statement = _parser.Next();
         }
 
@@ -295,7 +294,7 @@ public class Assembler
 
             return assembled;
         }
-            
+
         var instructionArgs = new List<object>();
         foreach (var (CompilerFunction, Operand) in instructionParamInfo.Zip(statement.OperandList.Operands))
         {
