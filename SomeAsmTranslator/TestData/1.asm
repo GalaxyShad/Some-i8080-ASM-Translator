@@ -1,3 +1,1 @@
-SONYA EQU 5, 8
-
-MVI A, 5
+DW 1234H
