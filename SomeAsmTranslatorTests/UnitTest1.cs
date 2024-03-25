@@ -683,7 +683,7 @@ namespace SomeAsmTranslatorTests
         public void SPHL() => TestInstruction("SPHL", new byte[] { 0xF9 });
 
         [TestMethod]
-        public void SHLD() => TestInstruction("SHLD, 6432h", new byte[] { 0x22, 0x32, 0x64 });
+        public void SHLD() => TestInstruction("SHLD 6432h", new byte[] { 0x22, 0x32, 0x64 });
 
         [TestMethod]
         public void STA() => TestInstruction("STA 6432h", new byte[] { 0x32, 0x32, 0x64 });
