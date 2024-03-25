@@ -21,7 +21,16 @@ public class LabelTable
     {
         if (_labelList.ContainsKey(label.Name))
         {
-            _labelList[label.Name].Token = label.Token;
+            if (label.Token != null)
+            {
+                _labelList[label.Name].Token = new Token
+                {
+                    Line = label.Token.Line,
+                    TokenType = label.Token.TokenType,
+                    Value = label.Token.Value
+                };
+            }
+            
             return _labelList[label.Name];
         }
 

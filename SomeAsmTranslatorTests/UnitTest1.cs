@@ -1,5 +1,6 @@
 using FluentAssertions;
 using SomeAsmTranslator.Source;
+using System.Reflection;
 
 namespace SomeAsmTranslatorTests
 {
@@ -34,6 +35,21 @@ namespace SomeAsmTranslatorTests
                       .MachineCode
                       .Should()
                       .Equal(new byte[] { 0x20 });
+        }
+
+        [TestMethod]
+        public void SelfLabel()
+        {
+            var asm = new Assembler(@"
+                ORG 1232h
+                M0: JMP M0
+            ");
+
+            var listing = asm.AssembleAll().ToList();
+            listing[1].AssembledAssemblyStatement
+                      .MachineCode
+                      .Should()
+                      .Equal(new byte[] { 0xC3, 0x32, 0x12 });
         }
     }
 

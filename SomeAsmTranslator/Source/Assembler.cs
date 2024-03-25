@@ -90,9 +90,11 @@ public class Assembler
         }
 
         if (statement.Label.Token?.TokenType != TokenType.LabelAddress)
+        {
             throw new InvalidDataException(
-                $"\"{statement.Label.Name}\" is not an address label. Did you mean \"{statement.Label.Name}:\"?");
-
+               $"\"{statement.Label.Name}\" is not an address label. Did you mean \"{statement.Label.Name}:\"?");
+        }
+           
         statement.Label.Type = LabelType.Address;
         statement.Label.Data = new OperandProgramCounter((ushort)_pgCounter);
     }
