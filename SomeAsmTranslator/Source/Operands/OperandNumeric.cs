@@ -5,65 +5,70 @@ namespace SomeAsmTranslator.Operands;
 
 class OperandNumeric : IOperand
 {
-    private int _value;
-
     private readonly string _valueString;
 
-    private void Parse(string value)
+    private int Parse(string value)
     {
         var dataParser = new NumericDataParser();
 
         char last = value.ToUpper().Last();
 
-        if (last == 'H')
-            _value = dataParser.ParseHexadecimal(value);
-        else if (last == 'O' || last == 'Q')
-            _value = dataParser.ParseOctal(value);
-        else if (last == 'B')
-            _value = dataParser.ParseBinary(value);
-        else if (last == 'D' || char.IsDigit(last))
-            _value = dataParser.ParseDecimal(value);
-        else
-            throw new InvalidDataException($"{value} is invalid numeric value");
+        return last switch
+        {
+            'H' => dataParser.ParseHexadecimal(value),
+            'O' or 'Q' => dataParser.ParseOctal(value),
+            'B' => dataParser.ParseBinary(value),
+            'D' => dataParser.ParseDecimal(value),
+
+            var x when char.IsDigit(x) => dataParser.ParseDecimal(value),
+
+            _ => throw new InvalidDataException($"{value} is invalid numeric value")
+        };
     }
 
     public OperandNumeric(string value)
     {
         _valueString = value;
-        Parse(value);
     }
+
+    public OperandNumeric(int value) : this(value.ToString()) { }
 
     public ushort To16bitAdress()
     {
-        if (_value > 0xFFFF)
-            throw new InvalidCastException("Cannot convert value to 16 bit adr. Value greater than 16 bit");
+        var res = Parse(_valueString);
 
-        return NumericDataParser.SwapBytes((ushort)_value);
+        if (res > 0xFFFF)
+            throw new InvalidCastException($"Cannot convert value '{res:X}' to 16 bit adr. Value greater than 16 bit");
+
+        return NumericDataParser.SwapBytes((ushort)res);
     }
 
     public byte ToImmediateData()
     {
-        if (_value > 0xFF)
-            throw new InvalidCastException("Cannot convert value to 8 bit data. Value greater than 8 bit");
+        var res = Parse(_valueString);
 
-        return (byte)_value;
+        if (res > 0xFF)
+            throw new InvalidCastException($"Cannot convert value '{res:X}' to 8 bit data. Value greater than 8 bit");
+
+        return (byte)res;
     }
 
     public Register ToRegister()
     {
-        if (_value > 7 || _value < 0)
-            throw new InvalidCastException("Cannot convert value to register. Unexisting register");
+        var res = Parse(_valueString);
 
-        return (Register)_value;
+        if (res > 7 || res < 0)
+            throw new InvalidCastException($"Cannot convert value '{res:X}' to register. Unexisting register");
+
+        return (Register)res;
     }
 
     public RegisterPair ToRegisterPair()
     {
-        throw new InvalidCastException("Numeric value cannot be specified as Register Pair");
+        throw new InvalidCastException($"Numeric value cannot be specified as Register Pair");
     }
 
-    public override string ToString()
-    {
-        return _valueString;
-    }
+    public override string ToString() => _valueString;
+
+    public ushort ToRawData() => (ushort)Parse(_valueString);
 }

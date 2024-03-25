@@ -6,8 +6,13 @@ class Lexer
 {
     private readonly string[] _instructionTable =
         InstructionTranslator.GetInstructionNames()
-        .Concat(Preproccesor.GetPseudoInstructrions())
+        .Concat(Assembler.GetPseudoInstructrions())
         .ToArray();
+
+    private readonly string[] _expressionOperators = new[]
+    {
+        "+", "-", "*", "/", "MOD", "NOT", "AND", "OR", "XOR", "SHR", "SHL", "(", ")"
+    };
 
     private readonly TextReader _sourceCodeReader;
 
@@ -22,6 +27,31 @@ class Lexer
         _currentChar = NextChar();
     }
 
+    public Token Next()
+    {
+        PassWhiteSpaces();
+
+        return CurrentChar switch
+        {
+            '\0' => Token.EOF,
+            '\n' => ProcNewLine(),
+            '\'' => ProcString(),
+            ';' => ProcComment(),
+            ',' => ProcComma(),
+            '$' => ProcProgramCounterData(),
+
+            var c when isCharExpressionOperand(c) => ProcMath(),
+
+            var c when IsCharLetterOrSpecialSym(c) => ProcLabelAndSymbols(),
+            var c when char.IsNumber(c) => ProcNumbers(),
+
+            _ => throw new TranslatorLexerException(
+                    $"Unknown token {(int)CurrentChar} {CurrentChar}",
+                    _lineCounter
+                 ),
+        };
+    }
+
     private char CurrentChar => _currentChar != -1 ? char.ToUpper((char)_currentChar) : '\0';
 
     private int NextChar() => _currentChar = _sourceCodeReader.Read();
@@ -30,6 +60,15 @@ class Lexer
     {
         while (char.IsWhiteSpace(CurrentChar) && CurrentChar is not '\n')
             NextChar();
+    }
+
+    private Token ProcMath()
+    {
+        var current = CurrentChar;
+
+        NextChar();
+
+        return new Token { Line = _lineCounter, TokenType = TokenType.ExpressionOperator, Value = current.ToString() };
     }
 
     private Token ProcLabelAndSymbols()
@@ -56,10 +95,15 @@ class Lexer
             return new Token { TokenType = TokenType.Instruction, Value = value, Line = _lineCounter };
         }
 
+        if (_expressionOperators.Contains(value))
+        {
+            return new Token { TokenType = TokenType.ExpressionOperator, Value = value, Line = _lineCounter };
+        }
+
         if (CurrentChar == ':')
         {
             NextChar();
-            return new Token { TokenType = TokenType.Label, Value = value, Line = _lineCounter };
+            return new Token { TokenType = TokenType.LabelAddress, Value = value, Line = _lineCounter };
         }
 
         return new Token { TokenType = TokenType.Symbol, Value = value, Line = _lineCounter };
@@ -72,7 +116,8 @@ class Lexer
         value += CurrentChar;
         NextChar();
 
-        while (!char.IsWhiteSpace(CurrentChar) && CurrentChar != '\0' && CurrentChar != ',')
+        while (!char.IsWhiteSpace(CurrentChar) && CurrentChar != '\0' && CurrentChar != ',' &&
+            !isCharExpressionOperand(CurrentChar))
         {
             value += CurrentChar;
             NextChar();
@@ -145,29 +190,9 @@ class Lexer
         return Token.NewLine;
     }
 
-    public Token Next()
-    {
-        PassWhiteSpaces();
+    private static bool isCharExpressionOperand(char c) =>
+        c is '+' or '-' or '*' or '/' or '(' or ')';
 
-        return CurrentChar switch
-        {
-            '\0' => Token.EOF,
-            '\n' => ProcNewLine(),
-            '\'' => ProcString(),
-            ';' => ProcComment(),
-            ',' => ProcComma(),
-            '$' => ProcProgramCounterData(),
-
-            var c when IsCharLetterOrSpecialSym(c) => ProcLabelAndSymbols(),
-            var c when char.IsNumber(c) => ProcNumbers(),
-
-            _ => throw new TranslatorLexerException(
-                    $"Unknown token {(int)CurrentChar} {CurrentChar}",
-                    _lineCounter
-                 ),
-        };
-    }
-
-    private bool IsCharLetterOrSpecialSym(char c) =>
+    private static bool IsCharLetterOrSpecialSym(char c) =>
         c >= 'A' && c <= 'Z' || c == '?' || c == '@' || c == '_';
 }

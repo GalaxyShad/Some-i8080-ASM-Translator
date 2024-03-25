@@ -5,81 +5,63 @@ namespace SomeAsmTranslator.Source;
 
 class Parser
 {
-    private readonly Dictionary<string, Label> _labelList = new();
+    private readonly LabelTable _labelTable;
+    private readonly Lexer _lexer;
 
-    private readonly Dictionary<string, Label> _setList = new()
+    private Token _currentToken = Token.EOF;
+    private Token _previousToken = Token.EOF;
+
+    public Parser(Lexer lexer, LabelTable labelTable)
     {
-        { "B", new Label("B", 0) },
-        { "C", new Label("C", 1) },
-        { "D", new Label("D", 2) },
-        { "E", new Label("E", 3) },
-        { "H", new Label("H", 4) },
-        { "L", new Label("L", 5) },
-        { "M", new Label("M", 6) },
-        { "A", new Label("A", 7) },
-    };
-
-    private readonly Queue<Token> _tokenQueue = new();
-
-    public Parser(string source)
-    {
-        PreScan(source);
+        _labelTable = labelTable;
+        _lexer = lexer;
+        _currentToken = TokenNext();
     }
 
-    private Token TokenAt() =>
-        _tokenQueue.Count != 0 ? _tokenQueue.Peek() : Token.EOF;
+    public AssemblyStatement Next() =>
+        new(ParseLabel(), ParseInstruction(), ParseOperands(), ParseComment());
 
-    private Token TokenEat() =>
-        _tokenQueue.Count != 0 ? _tokenQueue.Dequeue() : Token.EOF;
-
-    private void PreScan(string source)
+    private Token TokenNext()
     {
-        var tokenizer = new Lexer(source);
+        _currentToken = _lexer.Next();
 
-        var token = tokenizer.Next();
-        while (token.TokenType != TokenType.EOF)
+        while (_currentToken.TokenType is TokenType.NewLine)
+            _currentToken = _lexer.Next();
+
+        return _currentToken;
+    }
+
+    private Token TokenAt() => _currentToken;
+
+    private Token TokenEat()
+    {
+        _previousToken = new Token
         {
-            if (token.TokenType == TokenType.NewLine)
-            {
-                token = tokenizer.Next();
-                continue;
-            }
+            Line = _currentToken.Line,
+            TokenType = _currentToken.TokenType,
+            Value = _currentToken.Value
+        };
 
-            if (token.TokenType == TokenType.Label)
-            {
-                if (_labelList.ContainsKey(token.Value))
-                    throw new InvalidDataException($"Double Label {token.Value}");
+        TokenNext();
 
-                _labelList.Add(token.Value, new Label(token.Value));
-            }
-
-            _tokenQueue.Enqueue(token);
-            token = tokenizer.Next();
-        }
-    }
-
-    public AssemblyStatement Next()
-    {
-        return new AssemblyStatement(
-            ParseLabel(),
-            ParseInstruction(),
-            ParseOperands(),
-            ParseComment()
-        );
+        return _previousToken;
     }
 
     private OperandList ParseOperands()
     {
         var operandList = new OperandList();
 
-        var left = ParseOperand();
+        if (_previousToken.TokenType is not TokenType.Instruction)
+            return operandList;
+
+        var left = ParseExpression();
         if (left != null)
             operandList.Add(left);
 
         while (TokenAt().TokenType is TokenType.Comma)
         {
             TokenEat();
-            left = ParseOperand();
+            left = ParseExpression();
 
             if (left != null)
                 operandList.Add(left);
@@ -88,50 +70,97 @@ class Parser
         return operandList;
     }
 
-    private IOperand? ParseOperand()
+    private IOperand? ParseExpression()
     {
-        IOperand operand;
+        var expression = new OperandExpression(_labelTable);
 
-        switch (TokenAt().TokenType)
+        if (TokenAt().TokenType is TokenType.Comma)
         {
-            case TokenType.ProgramCounterData:
-                operand = new OperandProgramCounter();
-                break;
-            case TokenType.Number:
-                operand = new OperandNumeric(TokenAt().Value);
-                break;
-            case TokenType.String:
-                throw new NotImplementedException("Strings are not implemented yet");
-            case TokenType.Symbol:
-                if (_labelList.ContainsKey(TokenAt().Value))
-                    operand = new OperandLabel(_labelList[TokenAt().Value]);
-
-                else if (_setList.ContainsKey(TokenAt().Value))
-                    operand = new OperandLabelAssignedValue(_setList[TokenAt().Value]);
-
-                else if (TokenAt().Value is "SP" or "PSW")
-                    operand = new OperandLabelAssignedValue(new Label(TokenAt().Value));
-
-                else
-                    throw new InvalidDataException($"Unexisting label {TokenAt().Value}");
-
-                break;
-            default:
-                return null;
+            throw new TranslatorParserException(
+                $"Expected symbol, number, pg counter or expression operator, but ',' was found",
+                TokenAt().Line);
         }
 
-        TokenEat();
+        while (TokenAt().TokenType
+            is TokenType.Symbol
+            or TokenType.Number
+            or TokenType.ProgramCounterData
+            or TokenType.ExpressionOperator)
+        {
+            var token = TokenEat();
 
-        return operand;
+            expression.Add(token);
+
+            if (token.TokenType is TokenType.Symbol or TokenType.Number &&
+                TokenAt().TokenType is TokenType.Symbol or TokenType.Number)
+            {
+                break;
+            }
+        }
+
+        if (TokenAt().TokenType is TokenType.Number)
+        {
+            throw new TranslatorParserException(
+                $"Expected instruction, label or column, but number '{TokenAt().Value}' was found",
+                TokenAt().Line);
+        }
+
+        if (expression.Count == 0)
+            return null;
+
+        return (expression.Count != 1)
+            ? expression
+            : expression.ConvertToSingleOperand();
     }
 
-    private Label? ParseLabel() =>
-        TokenAt().TokenType is TokenType.Label ? _labelList[TokenEat().Value] : null;
+    private Label? ParseLabel()
+    {
+        return TokenAt().TokenType switch
+        {
+            TokenType.LabelAddress or TokenType.Symbol =>
+                _labelTable.AddOrUpdateLabel(new Label
+                {
+                    Token = TokenAt(),
+                    Name = TokenEat().Value
+                }),
 
-    private string? ParseInstruction() =>
-        TokenAt().TokenType is TokenType.Instruction ? TokenEat().Value : null;
+            TokenType.Instruction or TokenType.Comment or TokenType.EOF => null,
 
-    private string? ParseComment() =>
-        TokenAt().TokenType is TokenType.Comment ? TokenEat().Value : null;
+            _ => throw new TranslatorParserException(
+                    $"Expected label, instruction or comment, but ${TokenAt().TokenType} was found",
+                    TokenAt().Line
+                 )
+        };
+    }
 
+    private Instruction? ParseInstruction()
+    {
+        return TokenAt().TokenType switch
+        {
+            TokenType.Instruction => new Instruction { Line = TokenAt().Line, Name = TokenEat().Value },
+
+            TokenType.Comment or TokenType.LabelAddress or TokenType.Symbol or TokenType.EOF => null,
+
+            _ => throw new TranslatorParserException(
+                    $"Expected label, instruction or comment, but ${TokenAt().TokenType} was found",
+                    TokenAt().Line
+                 )
+        };
+    }
+
+
+    private string? ParseComment()
+    {
+        return TokenAt().TokenType switch
+        {
+            TokenType.Comment => TokenEat().Value,
+
+            TokenType.Instruction or TokenType.LabelAddress or TokenType.Symbol or TokenType.EOF => null,
+
+            _ => throw new TranslatorParserException(
+                    $"Expected label, instruction or comment, but ${TokenAt().TokenType} was found",
+                    TokenAt().Line
+                 )
+        };
+    }
 }

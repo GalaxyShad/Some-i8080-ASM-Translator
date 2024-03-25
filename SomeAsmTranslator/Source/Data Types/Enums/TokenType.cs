@@ -3,7 +3,7 @@
 public enum TokenType
 {
     Unknown,
-    Label,
+    LabelAddress,
     Symbol,             // OP, Pseudo OP, Symbol for SET or EQU, Label
     String,
     ProgramCounterData,
@@ -12,5 +12,6 @@ public enum TokenType
     Comma,
     EOF,
     Instruction,
-    NewLine
+    NewLine,
+    ExpressionOperator
 }

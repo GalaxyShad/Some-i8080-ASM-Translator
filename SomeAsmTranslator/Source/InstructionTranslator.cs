@@ -2,8 +2,7 @@
 
 namespace SomeAsmTranslator.Source;
 
-
-class InstructionTranslator
+public class InstructionTranslator
 {
 
     // Carry Bit Instructions
@@ -199,61 +198,10 @@ class InstructionTranslator
     // Halt instruction
     public uint HLT() => 0b0111_0110;
 
-    public byte[] DB(byte[] bytes) => bytes;
-
-    public byte[] DW(ushort word) => new byte[] { (byte)(word & 0xF), (byte)(word >> 8) };
-
+    public byte[] DB(params byte[] bytes) => bytes;
+    public byte[] DW(params ushort[] words) => words.SelectMany(x => new byte[] { (byte)(x >> 8), (byte)(x & 0xFF) }).ToArray();
     public byte[] DS(int count) => new byte[count];
 
     public static IEnumerable<string> GetInstructionNames() =>
         typeof(InstructionTranslator).GetMethods().Select(x => x.Name);
-
-    public static int GetDataDefinitionInstructionByteCount(string name, object[] args)
-    {
-        var method = typeof(InstructionTranslator).GetMethod(name);
-        if (method == null)
-            throw new ArgumentException($"Unknown instruction {name}");
-
-        if (method.Name is not (nameof(DB) or nameof(DW) or nameof(DS)))
-            throw new ArgumentException($"Unknown Data Definition instruction {name}");
-
-        int count = 0;
-        foreach (var (First, Second) in method.GetParameters().Zip(args))
-        {
-            if (First.ParameterType == typeof(byte[]))
-                count += ((byte[])Second).Length;
-            else if (First.ParameterType == typeof(ushort))
-                count += sizeof(ushort);
-            else if (First.ParameterType == typeof(int))
-                count += Convert.ToInt32(Second);
-        }
-
-        return count;
-    }
-
-    public static int GetInstructionByteCount(string name)
-    {
-        var method = typeof(InstructionTranslator).GetMethod(name);
-        if (method == null)
-            throw new ArgumentException($"Unknown instruction {name}");
-
-        if (method.Name is nameof(DB) or nameof(DW) or nameof(DS))
-            throw new MethodAccessException($"For DB DW DS use {nameof(GetDataDefinitionInstructionByteCount)}");
-
-        int count = 1;
-
-        if (method.Name is "RST")
-            return count;
-
-        foreach (var param in method.GetParameters())
-        {
-            if (param.ParameterType == typeof(byte))
-                count += sizeof(byte);
-            if (param.ParameterType == typeof(ushort))
-                count += sizeof(ushort);
-        }
-
-        return count;
-    }
-
 }

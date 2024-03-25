@@ -21,20 +21,27 @@ public class AssemblerListingWriterBinary : IAssemblerFileWriter
         {
             foreach (var line in orderedAsmLine)
             {
-                if (line.Bytes == null) { continue; };
+                var prevBytes = previousLine?.AssembledAssemblyStatement.MachineCode;
+                var bytes = line.AssembledAssemblyStatement.MachineCode;
+
+                if (bytes == null) { continue; };
 
                 if (previousLine == null)
                 {
-                    fs.Write(line.Bytes);
+                    fs.Write(bytes);
                     previousLine = line;
                     continue;
                 }
 
-                int dif = (int)(line.Address - (previousLine.Address + previousLine.Bytes.Length));
-                for (int i = 0; i < dif; i++)
-                    fs.WriteByte(0);
+                if (line?.Address != null && previousLine?.Address != null && prevBytes != null)
+                {
+                    int dif = (int)(line.Address - (previousLine.Address + prevBytes.Length));
+                    for (int i = 0; i < dif; i++)
+                        fs.WriteByte(0);
+                }
 
-                fs.Write(line.Bytes);
+
+                fs.Write(bytes);
                 previousLine = line;
             }
         }

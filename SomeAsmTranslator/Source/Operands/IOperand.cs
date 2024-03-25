@@ -6,6 +6,7 @@ public interface IOperand
     RegisterPair ToRegisterPair();
     byte ToImmediateData();
     ushort To16bitAdress();
+    ushort ToRawData();
 
     string ToString();
 }

@@ -3,6 +3,10 @@
     "SomeAsmTranslator": {
       "commandName": "Project",
       "commandLineArgs": "$(MSBuildProjectDirectory)/TestData/1.asm --csv --word --samelinebyte --bin --md"
+    },
+    "Monitor": {
+      "commandName": "Project",
+      "commandLineArgs": "$(MSBuildProjectDirectory)/TestData/monitor.asm --csv --word --bin --md"
     }
   }
 }

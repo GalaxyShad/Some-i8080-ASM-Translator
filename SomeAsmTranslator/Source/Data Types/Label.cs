@@ -2,18 +2,11 @@
 
 public class Label
 {
-    public string Name { get; }
-    public ushort Value
-    {
-        get => _value != null ? (ushort)_value : throw new ArgumentNullException($"Label {Name} value is not assigned");
-        set => _value = value;
-    }
+    public required string Name { get; set; }
+    public Token? Token { get; set; }
+    public IOperand? Data { get; set; }
+    public LabelType Type { get; set; } = LabelType.Unknown;
+    public override string ToString() =>
+        $"{Name} = {(Data != null ? $"{Data:X4}" : "NULL")}, {Type}";
 
-    private ushort? _value = null;
-
-    public Label(string name, ushort? value = null)
-    {
-        Name = name;
-        _value = value;
-    }
 }

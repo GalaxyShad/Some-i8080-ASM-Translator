@@ -9,7 +9,6 @@ namespace I8080Translator;
 
 partial class Program
 {
-    static private readonly Assembler _assembler = new();
     static private readonly ListingGenerator _listingGenerator = new();
 
     static void Main(string[] args)
@@ -21,41 +20,48 @@ partial class Program
               .WithNotParsed(HandleParseError);
     }
 
-    static void RunOptions(ArgumentsOptions opts)
+    static void ProccessProgram(ArgumentsOptions opts)
     {
-        try
+        _listingGenerator.IsMachineCodeLineSeperation = !opts.IsKeepAllInstructionBytesOnSameLine;
+
+        var assemblerLines = Assemble(opts.InputFilePath);
+        var listing = _listingGenerator.Generate(assemblerLines);
+
+        var listingWriterFactory = new AssemblerListingWriterFactory(listing, assemblerLines);
+        var listingWritersList = listingWriterFactory.Get(opts);
+
+        var inFilePath = Path.GetFullPath(opts.InputFilePath);
+        var inputFileWihoutExt = GetDirectoryPathWithoutExtension(inFilePath);
+        var outFilePath = $"{inputFileWihoutExt}.i8080asm";
+
+        foreach (IAssemblerFileWriter listingWriter in listingWritersList)
         {
-            string sourceCode = ReadSourceCodeFromFile(opts.InputFilePath);
-
-            _listingGenerator.IsMachineCodeLineSeperation = !opts.IsKeepAllInstructionBytesOnSameLine;
-
-            var assemblerLines = Assemble(sourceCode);
-            var listing = _listingGenerator.Generate(assemblerLines);
-
-            var listingWriterFactory = new AssemblerListingWriterFactory(listing, assemblerLines);
-            var listingWritersList = listingWriterFactory.Get(opts);
-
-            var inFilePath = Path.GetFullPath(opts.InputFilePath);
-            var inputFileWihoutExt = GetDirectoryPathWithoutExtension(inFilePath);
-            var outFilePath = $"{inputFileWihoutExt}.i8080asm";
-
-            foreach (IAssemblerFileWriter listingWriter in listingWritersList)
+            if (listingWriter is AssemblerListingWriterText consoleWriter)
             {
-                if (listingWriter is AssemblerListingWriterText consoleWriter)
-                {
-                    if (consoleWriter.FileExtension == AssemblerListingWriterText.Extension.Txt)
-                        consoleWriter.WriteToConsole();
-                }
-
-                listingWriter.WriteToFile(outFilePath);
+                if (consoleWriter.FileExtension == AssemblerListingWriterText.Extension.Txt)
+                    consoleWriter.WriteToConsole();
             }
 
-            Console.WriteLine($"\nSuccessfull");
+            listingWriter.WriteToFile(outFilePath);
+        }
+
+        Console.WriteLine($"\nSuccessfull");
+    }
+
+    static void RunOptions(ArgumentsOptions opts)
+    {
+#if DEBUG
+        ProccessProgram(opts);
+#else
+        try
+        {
+            ProccessProgram(opts);
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
         }
+#endif
     }
     static void HandleParseError(IEnumerable<Error> errs)
     {
@@ -67,35 +73,52 @@ partial class Program
         $"{Path.DirectorySeparatorChar}" +
         $"{Path.GetFileNameWithoutExtension(path)}";
 
-    static private IEnumerable<AssemblyLine> Assemble(string sourceCode)
+    static private IList<AssemblyLine> AssembleFile(string filepath)
     {
+        using var streamReader = new StreamReader(filepath);
+        var asm = new Assembler(streamReader);
+        return asm.AssembleAll().ToList();
+    }
+
+    static private IEnumerable<AssemblyLine> Assemble(string filepath)
+    {
+#if DEBUG
+        return AssembleFile(filepath);
+#else
         try
         {
-            return _assembler.AssembleAll(sourceCode);
+            return AssembleFile(filepath);
         }
         catch (TranslatorLexerException ex)
         {
             throw new Exception(
-                $"[ERR] [LEXER] {ex.GetType()}\n" +
-                $"Error at line {ex.ErrorLine}\n" +
-                $"      {ex.Message}"
+                $"[ERR] [LEXER] {filepath}\n" +
+                $"[Line {ex.ErrorLine}] {ex.Message}\n"
             );
         }
         catch (TranslatorParserException ex)
         {
             throw new Exception(
-                $"[ERR] [PARSER] {ex.GetType()}\n" +
-                $"Error at line {ex.ErrorLine}\n" +
-                $"      {ex.Message}"
+                $"[ERR] [PARSER] {filepath}\n" +
+                $"[Line {ex.ErrorLine}] {ex.Message}\n"
+            );
+        }
+        catch (TranslatorAssemblerException ex)
+        {
+            throw new Exception(
+                $"[ERR] [ASSEMBLER] {filepath}\n" +
+                $"[Line {ex.ErrorLine}] {ex.Message}\n"
             );
         }
         catch (Exception ex)
         {
             throw new Exception(
-                $"[ERR] [Unexpected error] [{ex.GetType()}] Send a bug report to the developer.\n" +
+                $"[ERR] [Unexpected error] {filepath}\n" +
+                $"[{ex.GetType()}] Send a bug report to the developer.\n" +
                 $"{ex.Message}\n"
             );
         }
+#endif
     }
 
     static private string ReadSourceCodeFromFile(string filepath)
