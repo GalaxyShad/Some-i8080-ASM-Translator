@@ -298,9 +298,9 @@ public class Assembler
         }
 
         var instructionArgs = new List<object>();
-        foreach (var (CompilerFunction, Operand) in instructionParamInfo.Zip(statement.OperandList.Operands))
+        foreach (var (compilerFunction, operand) in instructionParamInfo.Zip(statement.OperandList.Operands))
         {
-            ConvertOperandsToInstructionData(assembled, instructionArgs, CompilerFunction, Operand);
+            ConvertOperandsToInstructionData(assembled, instructionArgs, compilerFunction, operand);
         }
 
         uint code = (uint)instruction.Invoke(_instructionTranslator, instructionArgs.ToArray())!;

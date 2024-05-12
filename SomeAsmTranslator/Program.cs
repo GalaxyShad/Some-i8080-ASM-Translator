@@ -9,7 +9,7 @@ namespace I8080Translator;
 
 partial class Program
 {
-    static private readonly ListingGenerator _listingGenerator = new();
+    private static readonly ListingGenerator _listingGenerator = new();
 
     static void Main(string[] args)
     {
@@ -59,7 +59,7 @@ partial class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            Console.Error.WriteLine(ex.Message);
         }
 #endif
     }
