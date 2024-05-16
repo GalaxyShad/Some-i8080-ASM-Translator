@@ -8,7 +8,7 @@ public class ListingLine
     public string AsmCode { get; set; } = string.Empty;
     public string Comment { get; set; } = string.Empty;
 
-    public string Csv => $"{Address};{MachineCode};{Label};{AsmCode};{Comment};";
+    public string Csv => $"{HexFormat(Address)};{HexFormat(MachineCode)};{Label};{AsmCode};{Comment};";
     public string ToStringFormatted(ListingLineFormatParameters parameters)
     {
         return $"{Address.PadLeft(parameters.AddressColumnWidth)} | " +
@@ -17,6 +17,8 @@ public class ListingLine
                $"{AsmCode.PadRight(parameters.AsmCodeColumnWidth)} {parameters.CommentDividerChar} " +
                $"{Comment}";
     }
+
+    private string HexFormat(string hex) => hex + (string.IsNullOrEmpty(hex) ? string.Empty : "h");
 
 }
 
