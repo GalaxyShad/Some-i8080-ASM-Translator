@@ -1,4 +1,7 @@
-﻿using I8080Translator;
+﻿using System.Diagnostics.CodeAnalysis;
+using I8080Translator;
+// ReSharper disable InconsistentNaming
+// ReSharper disable UnusedMember.Global
 
 namespace SomeAsmTranslator.Source;
 

@@ -1,7 +1,6 @@
 ﻿using CommandLine;
 using SomeAsmTranslator.Source;
 using SomeAsmTranslator.Source.Listing;
-using SomeAsmTranslator.Source.Listing.ListingWriters.Interfaces;
 using SomeAsmTranslator.Source.Listing.ListingWriters.Writers;
 using Path = System.IO.Path;
 
@@ -9,46 +8,41 @@ namespace I8080Translator;
 
 partial class Program
 {
-    private static readonly ListingGenerator _listingGenerator = new();
+    private static readonly ListingGenerator ListingGenerator = new();
 
-    static void Main(string[] args)
+    private static void Main(string[] args)
     {
-        var parser = new CommandLine.Parser();
-
         CommandLine.Parser.Default.ParseArguments<ArgumentsOptions>(args)
               .WithParsed(RunOptions)
               .WithNotParsed(HandleParseError);
     }
 
-    static void ProccessProgram(ArgumentsOptions opts)
+    private static void ProccessProgram(ArgumentsOptions opts)
     {
-        _listingGenerator.IsMachineCodeLineSeperation = !opts.IsKeepAllInstructionBytesOnSameLine;
+        ListingGenerator.IsMachineCodeLineSeperation = !opts.IsKeepAllInstructionBytesOnSameLine;
 
         var assemblerLines = Assemble(opts.InputFilePath);
-        var listing = _listingGenerator.Generate(assemblerLines);
+        var listing = ListingGenerator.Generate(assemblerLines);
 
         var listingWriterFactory = new AssemblerListingWriterFactory(listing, assemblerLines);
         var listingWritersList = listingWriterFactory.Get(opts);
 
         var inFilePath = Path.GetFullPath(opts.InputFilePath);
-        var inputFileWihoutExt = GetDirectoryPathWithoutExtension(inFilePath);
-        var outFilePath = $"{inputFileWihoutExt}.i8080asm";
+        var inputFileWithoutExt = GetDirectoryPathWithoutExtension(inFilePath);
+        var outFilePath = $"{inputFileWithoutExt}.i8080asm";
 
-        foreach (IAssemblerFileWriter listingWriter in listingWritersList)
+        foreach (var listingWriter in listingWritersList)
         {
-            if (listingWriter is AssemblerListingWriterText consoleWriter)
-            {
-                if (consoleWriter.FileExtension == AssemblerListingWriterText.Extension.Txt)
-                    consoleWriter.WriteToConsole();
-            }
+            if (listingWriter is AssemblerListingWriterText { FileExtension: AssemblerListingWriterText.Extension.Txt } consoleWriter) 
+                consoleWriter.WriteToConsole();
 
             listingWriter.WriteToFile(outFilePath);
         }
 
-        Console.WriteLine($"\nSuccessfull");
+        Console.WriteLine("\nSuccessful");
     }
 
-    static void RunOptions(ArgumentsOptions opts)
+    private static void RunOptions(ArgumentsOptions opts)
     {
 #if DEBUG
         ProccessProgram(opts);
@@ -63,24 +57,25 @@ partial class Program
         }
 #endif
     }
-    static void HandleParseError(IEnumerable<Error> errs)
+
+    private static void HandleParseError(IEnumerable<Error> errs)
     {
         //handle errors
     }
 
-    static string GetDirectoryPathWithoutExtension(string path) =>
+    private static string GetDirectoryPathWithoutExtension(string path) =>
         $"{Path.GetDirectoryName(path)}" +
         $"{Path.DirectorySeparatorChar}" +
         $"{Path.GetFileNameWithoutExtension(path)}";
 
-    static private IList<AssemblyLine> AssembleFile(string filepath)
+    private static IList<AssemblyLine> AssembleFile(string filepath)
     {
         using var streamReader = new StreamReader(filepath);
         var asm = new Assembler(streamReader);
         return asm.AssembleAll().ToList();
     }
 
-    static private IEnumerable<AssemblyLine> Assemble(string filepath)
+    private static IEnumerable<AssemblyLine> Assemble(string filepath)
     {
 #if DEBUG
         return AssembleFile(filepath);
@@ -121,7 +116,7 @@ partial class Program
 #endif
     }
 
-    static private string ReadSourceCodeFromFile(string filepath)
+    private static string ReadSourceCodeFromFile(string filepath)
     {
         try
         {
