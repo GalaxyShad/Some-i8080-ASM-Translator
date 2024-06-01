@@ -21,6 +21,9 @@ public class ArgumentsOptions
 
     [Option('b', "bin", Required = false, HelpText = "Generate binary file")]
     public bool IsGenerateBinary { get; set; }
+    
+    [Option('h', "hex", Required = false, HelpText = "Generate intel HEX file")]
+    public bool IsGenerateIntelHex { get; set; }
 }
 
 

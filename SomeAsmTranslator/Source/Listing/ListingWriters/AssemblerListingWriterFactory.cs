@@ -35,6 +35,9 @@ partial class Program
             if (opt.IsGenerateBinary)
                 yield return new AssemblerListingWriterBinary(_assemblyLineList);
 
+            if (opt.IsGenerateIntelHex)
+                yield return new AssemblerListingWriterIntelHex(_assemblyLineList);
+
             if (opt.IsGenerateCsv)
                 yield return new AssemblerListingWriterCsv(_listing);
 

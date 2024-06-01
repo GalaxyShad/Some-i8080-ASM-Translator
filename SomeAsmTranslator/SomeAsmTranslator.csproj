@@ -9,6 +9,7 @@
     <RepositoryUrl>https://github.com/GalaxyShad/Some-i8080-ASM-Translator</RepositoryUrl>
     <Authors>GalaxyShad</Authors>
     <LangVersion>latestmajor</LangVersion>
+    <Version>2.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
