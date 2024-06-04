@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -7,9 +7,11 @@
     <Nullable>enable</Nullable>
     <AssemblyName>i8080</AssemblyName>
     <RepositoryUrl>https://github.com/GalaxyShad/Some-i8080-ASM-Translator</RepositoryUrl>
-    <Authors>GalaxyShad</Authors>
+    <Authors>GalaxyShad | github - github.com/GalaxyShad, telegram - @galaxyshad</Authors>
     <LangVersion>latestmajor</LangVersion>
     <Version>2.0.0</Version>
+    <PackageProjectUrl>https://github.com/GalaxyShad/Some-i8080-ASM-Translator</PackageProjectUrl>
+    <Description>Translator of KR580VM80A / Intel 8080A assembler into machine code, with the ability to generate listing in different formats.</Description>
   </PropertyGroup>
 
   <ItemGroup>

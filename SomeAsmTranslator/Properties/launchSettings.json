@@ -7,6 +7,13 @@
     "Monitor": {
       "commandName": "Project",
       "commandLineArgs": "$(MSBuildProjectDirectory)/TestData/monitor.asm --csv --word --bin --md"
+    },
+    "Version": {
+      "commandName": "Project",
+      "commandLineArgs": "--version"
+    },
+    "Just Run": {
+      "commandName": "Project"
     }
   }
 }
