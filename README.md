@@ -1,7 +1,7 @@
 <div align="center">
   <p align="center">
       <h1 align="center" style="color:red;">Some-i8080-ASM-Translator</h1>
-      <img src="https://github.com/GalaxyShad/Some-i8080-ASM-Translator/assets/52833080/2b692322-90f3-4f74-b8f6-969fd142fac9" /><br/>
+      <img src="https://github.com/user-attachments/assets/c8c0bf31-4f98-4164-8ba8-f5d0bb8232b0" /><br/>
       Some-i8080-ASM-Translator is a powerful, lightweight, and easy-to-use assembler translator for the KR580VM80A / Intel 8080A, developed according to the specifications in the INTEL8080 Assembly Language Programming Manual. It generates machine code and offers the ability to generate listings in various formats.
   </p>
 </div>
